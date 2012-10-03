@@ -1,7 +1,7 @@
 
 #include "AmericanOption.h"
 
-using namespace std;
+using namespace std; 
 
 double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
     double y[D];

@@ -3,7 +3,11 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <unistd.h>
+<<<<<<< HEAD
+#include <stdio.h> 
+=======
 #include <stdio.h>
+>>>>>>> 09d022f2df3e5d229025d7f13762eab05eb01045
 #include <string.h>
 #include <stdlib.h>
 #include <string.h>
