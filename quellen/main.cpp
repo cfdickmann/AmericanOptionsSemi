@@ -21,7 +21,6 @@ void printInfo()
 int main( int argc, char* args[]) {
   int runden=1;
 
-  printf("mit gitub \n");
   printf("mit github \n");
 
     AmericanOption AMO;
