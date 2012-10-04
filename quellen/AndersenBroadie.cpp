@@ -133,7 +133,6 @@ double** AmericanOption::betasAusDateiLaden() {
     return betas;
 }
 
-
 double AmericanOption::AndersenBroadieEinzel(double ** x, int nsubpaths) {
     return AndersenBroadieEinzel(x, nsubpaths, 0);
 }
