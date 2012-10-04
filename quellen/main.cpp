@@ -20,8 +20,7 @@ void printInfo()
 
 int main( int argc, char* args[]) {
   int runden=1;
-
-  printf("endlich mit github 2 \n");
+  //printf("endlich mit github \n");
 
     AmericanOption AMO;
     //AMO.AndersenBroadieTest();
