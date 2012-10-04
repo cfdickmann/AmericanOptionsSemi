@@ -62,7 +62,7 @@ void AmericanOption::semi() {
     if (D == 2) {
         Mphi = 1712; //37   // Basisfunktionen
         J = 121; //10*10;//49 // Stuetzpunkte
-        M = 5000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+        M = 50; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
     }
 
     if (D == 3) {
