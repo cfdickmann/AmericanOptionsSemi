@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include "AmericanOption.h"
 #include <cstring>
@@ -6,7 +5,6 @@
 #include <iostream>
 
 using namespace std;
-//using namespace alglib;
 
 void printInfo()
 {
@@ -20,7 +18,6 @@ void printInfo()
 
 int main( int argc, char* args[]) {
   int runden=1;
-  //printf("endlich mit github \n");
 
     AmericanOption AMO;
     //AMO.AndersenBroadieTest();
