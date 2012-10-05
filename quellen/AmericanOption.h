@@ -12,7 +12,7 @@
 //#include "../src/optimization.h"
 
 #include <time.h>
-//#include "../src/stdafx.h"
+#include "RNG.h"
 #include "MTRand.h"
 //#include "../src/ap.h"
 #include "math.h"
@@ -105,8 +105,9 @@ namespace std {
 
         MTRand MT; //MersenneTwister
         void Pfadgenerieren(double** X, int start, double * S);
-        void Pfadgenerieren(double** X, double** wdiff, double** sprue, int start, double * S);
-        void Pfadgenerieren(double** X, double** wdiff, double** sprue);
+        void Pfadgenerieren(double** X, double** wdiff, int start, double* S);
+        void Pfadgenerieren(double** X,  int start, double* S, RNG* generator);
+        void Pfadgenerieren(double** X, double** wdiff);
         void Pfadgenerieren(double** X);
         void Daten();
         void neueExerciseDates(int n);

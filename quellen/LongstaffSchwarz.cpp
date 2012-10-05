@@ -123,18 +123,13 @@ void AmericanOption::LongstaffSchwartz() { //TODO
 			double e=0;
 			double** X=DoubleFeld(N,D);
 			double** wdiff=DoubleFeld(N,D);
-			double** sprue=DoubleFeld(N,D);
 			int durchlaeufe=LSM_Mtesting/Threadanzahl; //10000000/Threadanzahl
 			for (int k = 0; k < durchlaeufe; ++k){
 				for(int n=0;n<N;++n)
 					for(int j=0;j<D;++j){
 						wdiff[n][j]=sqrt(dt)*nextGaussian();
-						int NumberOfJumps=Poisson(lambdaJump*dt);
-						sprue[n][j]=0;
-						for(int jump=0;jump<NumberOfJumps;++jump)
-							sprue[n][j]+=newSprung();
 					}
-				Pfadgenerieren(X,wdiff,sprue);
+				Pfadgenerieren(X,wdiff);
 				double erg=payoff(X[N - 1],N - 1 );
 				for (int lau = 1; lau<N-1; ++lau)
 					if (LSM_C_estimated(X[lau],lau)<= payoff( X[lau],lau)){

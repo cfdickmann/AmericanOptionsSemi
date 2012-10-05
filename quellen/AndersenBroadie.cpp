@@ -54,24 +54,14 @@ void AmericanOption::AndersenBroadie()	//Andersen-Broadie Multilevel //TODO
 				MT.seed(getpid()+f+time(NULL)); // Ergebnis berechnet
 
 				double ** x=DoubleFeld(N,D);
-				double ** wdiff=DoubleFeld(N,D);
-				double ** sprue=DoubleFeld(N,D);
-
-				for(int nn=0;nn<N;++nn)
-					for(int d=0;d<D;++d)
-						sprue[nn][d]=0; // keine Sprungprozesse
 
 				double ergErgebnis;
 				double ergMittelwert=0;
 				double ergQuadratsumme=0;
 				for (int nn = 0; nn < n[l]; ++nn)  // nn-mal simulieren
 				{
-					for(int nnn=0;nnn<N;++nnn)       // Fuer jeden Zeitschritt
-						for(int d=0;d<D;++d)      // Fue jedes asset
-							if(antithetics && nn%2==1)   // jedes 2te mal
-								wdiff[nnn][d]*=-1;else   //Antithetics!
-									wdiff[nnn][d]=sqrt(dt)*nextGaussian();  // neue Wdiff
-					Pfadgenerieren(x,wdiff,sprue);
+				RNG generator;
+					Pfadgenerieren(x,0,X0,&generator);
 					double ABminus=0;
 					if(l>0)ABminus=AndersenBroadieEinzel(x,k[l-1]); //im ersten Schritt keine Subtraktion
 					double ABplus=AndersenBroadieEinzel(x,k[l]);

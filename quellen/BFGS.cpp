@@ -227,7 +227,7 @@ void AmericanOption::BFGS_StochIntgenerieren(int threadNummer)
 
 	if(verbose)printf("Pfade erzeugen\n");
 	for (int m = mAnfang; m < mEnde; ++m){
-		Pfadgenerieren(X[m],WDiff[m],Sprue[m]);
+		Pfadgenerieren(X[m],WDiff[m]);
 	}
 
 	if(verbose)printf("StochInt generieren\n");
@@ -377,15 +377,11 @@ double AmericanOption::BFGS_testing(double number_of_replications){
 	for(int lauf=1;lauf<=number_of_replications;lauf++)
 	{
 		for (int n = 0; n < N; ++n)
-			for(int j=0;j<D;++j){
+			for(int j=0;j<D;++j)
 				wdiff[n][j] = sqrt(dt) * nextGaussian();
-				int NumberOfJumps=Poisson(lambdaJump*dt);
-				sprue[n][j]=0;
-				for(int jump=0;jump<NumberOfJumps;++jump)
-					sprue[n][j]+=newSprung();
-			}
 
-		Pfadgenerieren(x,wdiff,sprue);
+
+		Pfadgenerieren(x,wdiff);
 
 		if(lauf<Npfade+1){
 			for(int n=0;n<N;++n)

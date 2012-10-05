@@ -25,23 +25,11 @@ void* DELEGATE_stuetzerwartung_ausrechnen(void* data) {
 
 double **** AmericanOption::semi_inner_paths_erzeugen(){
     double**** erg = DoubleFeld(J, M, N, D);
-    srand(getpid() + time(NULL));
-    MT.seed(getpid() + time(NULL));
-    for (int j = 0; j < J; ++j) {
-        double** wdiff = DoubleFeld(N, D);
-        double** sprue = DoubleFeld(N, D);
-        for (int m = 0; m < M; ++m) {
-            for (int n = 0; n < N; ++n)
-                for (int j = 0; j < D; ++j) {
-                    if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * BoxMuller((double) (random()) / (double) (RAND_MAX), (double) (random()) / (double) (RAND_MAX));
-//                    if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * BoxMuller(MT(),MT());
-                    else wdiff[n][j] = -wdiff[n][j]; //antithetics
-                    sprue[n][j] = 0;
-                }
-            Pfadgenerieren(erg[j][m], wdiff, sprue, 0, stuetzpunkte[j]);
-        }
-    }
-    return erg;
+    RNG generator;
+    for (int j = 0; j < J; ++j)
+        for (int m = 0; m < M; ++m)
+            Pfadgenerieren(erg[j][m], 0, stuetzpunkte[j],&generator);
+        return erg;
 }
 
 void AmericanOption::semi() {
@@ -342,7 +330,7 @@ void AmericanOption::semi_test(int threadnummer) {
                 else wdiff[n][j] = -wdiff[n][j]; //antithetics
                 sprue[n][j] = 0;
             }
-        Pfadgenerieren(x, wdiff, sprue);
+        Pfadgenerieren(x, wdiff);
         double sum = 0;
         for (int n = 0; n < N; ++n)
             sum += semi_f(n, x[n]);
