@@ -51,7 +51,7 @@ void AmericanOption::semi() {
 
     semi_testingpaths = 100000; //Wie viele Testingpaths
     //    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
-    int durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
+    int durchlaeufe = 3; //mehrmals pro zeitschritt optimieren 5
 
     if (D == 1) {
         Mphi = 1; //56
@@ -62,14 +62,13 @@ void AmericanOption::semi() {
     if (D == 2) {
         Mphi = 1712; //37   // Basisfunktionen
         J = 121; //10*10;//49 // Stuetzpunkte
-        M = 5000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+        M = 2000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
     }
 
     if (D == 3) {
         Mphi += 1400;
         J = 125; //216   125
         M = 5000;   //5000
-        mlsm=true;
     }
 
     if (D > 3) {
