@@ -204,6 +204,8 @@ double AmericanOption::EuropeanCall1D(double t, double T, double S, double strik
 double AmericanOption::EuropeanOption1D_discounted(double t, double T, double S, double strike) {
     if (option == MIN_PUT)return EuropeanPut1D_discounted(t, T, S, strike);
     if (option == MAX_CALL)return EuropeanCall1D_discounted(t, T, S, strike);
+    printf("Error 378");
+    return 0;
 }
 
 double AmericanOption::european_MaxCall_ND(double* x, double t, double T) {
