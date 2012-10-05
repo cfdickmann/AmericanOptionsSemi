@@ -9,24 +9,20 @@
 #include <math.h>
 #include <iostream>
 #include <stdlib.h>
-//#include "../src/optimization.h"
 
 #include <time.h>
-//#include "../src/stdafx.h"
-#include "MTRand.h"
-//#include "../src/ap.h"
+
 #include "math.h"
 #include "Hilfsmittel.h"
-//#include "../src/stdafx.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-//#include "../src/optimization.h"
 #include <math.h>
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
 #include <cstring>
+#include "RNG.h"
 
 #define MAX_CALL 1
 #define MIN_PUT 0
@@ -103,11 +99,8 @@ namespace std {
         double** gradient;
         double* sup_glatt;
 
-        MTRand MT; //MersenneTwister
-        void Pfadgenerieren(double** X, int start, double * S);
-        void Pfadgenerieren(double** X, double** wdiff, double** sprue, int start, double * S);
-        void Pfadgenerieren(double** X, double** wdiff, double** sprue);
-        void Pfadgenerieren(double** X);
+        void Pfadgenerieren(double** X, int start, double* S, RNG* generator);
+
         void Daten();
         void neueExerciseDates(int n);
         double newSprung();
@@ -202,7 +195,6 @@ namespace std {
     double*** AB_quadratsummen;
 
         //semi members
-
         double ***** semi_inner_paths;
         double** semi_betas;
         int ** semi_betas_index;

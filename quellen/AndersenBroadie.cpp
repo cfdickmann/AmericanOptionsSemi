@@ -1,7 +1,6 @@
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
-#include "MTRand.h"
 #include "math.h"
 #include "stdlib.h"
 #include "AmericanOption.h"
@@ -12,98 +11,99 @@ AmericanOption* zeiger4;
 
 void AmericanOption::AndersenBroadie()	//Andersen-Broadie Multilevel //TODO
 {
-	int L=4;   //Anzahl der Level
-	double n0=200; //Anzahl der Pfade
-	double k0=300; // Anzahl der subsimulaions
-	double faktor=2; // Das ist KAPPA !
-
-	LSM_setting();
-
-	betas=betasAusDateiLaden();
-
-	double Gesamtergebnis=0;
-
-	int k[L];
-	int n[L];
-	k[0]=k0;
-	n[0]=n0;
-
-	for(int l=0;l<L;++l) //Anfang des Levels
-	{
-		n[l]=(int)ceil(n0*pow(faktor,-(double)l)/Threadanzahl);  // neue n und k setzen
-		k[l]=(int)(k0*pow(faktor,(double)l));
-
-		// Pipes zur Uebergabe von ergebnissen an das Hauptprogramm definieren
-		int ergPipe[Threadanzahl][2];			//zur uebergabe der differenz
-		int mittelwertPipe[Threadanzahl][2];   	// zur uebergabe der mittelwerte
-		int quadratsummePipe[Threadanzahl][2]; 	// zur uebergabe von summe (x_i^2)
-
-		for(int z=0;z<Threadanzahl;++z){// pipes erzeugen
-			pipe(mittelwertPipe[z]);
-			pipe(quadratsummePipe[z]);
-			pipe(ergPipe[z]);
-		}
-
-		int pid;
-		for(int f=0;f<Threadanzahl;++f)
-		{
-			pid = fork();  // Prozess duplizieren
-			if (pid == 0)
-			{
-				srand(getpid()+f+time(NULL));  //seed von Zufallsgeneratoren setzen, damit nicht jeder instanz das gleiche
-				MT.seed(getpid()+f+time(NULL)); // Ergebnis berechnet
-
-				double ** x=DoubleFeld(N,D);
-				double ** wdiff=DoubleFeld(N,D);
-				double ** sprue=DoubleFeld(N,D);
-
-				for(int nn=0;nn<N;++nn)
-					for(int d=0;d<D;++d)
-						sprue[nn][d]=0; // keine Sprungprozesse
-
-				double ergErgebnis;
-				double ergMittelwert=0;
-				double ergQuadratsumme=0;
-				for (int nn = 0; nn < n[l]; ++nn)  // nn-mal simulieren
-				{
-					for(int nnn=0;nnn<N;++nnn)       // Fuer jeden Zeitschritt
-						for(int d=0;d<D;++d)      // Fue jedes asset
-							if(antithetics && nn%2==1)   // jedes 2te mal
-								wdiff[nnn][d]*=-1;else   //Antithetics!
-									wdiff[nnn][d]=sqrt(dt)*nextGaussian();  // neue Wdiff
-					Pfadgenerieren(x,wdiff,sprue);
-					double ABminus=0;
-					if(l>0)ABminus=AndersenBroadieEinzel(x,k[l-1]); //im ersten Schritt keine Subtraktion
-					double ABplus=AndersenBroadieEinzel(x,k[l]);
-					ergErgebnis+=  (ABplus-ABminus)/(double)(n[l]);
-					ergMittelwert+=(ABplus-ABminus)/(double)(n[l]);
-					ergQuadratsumme+=pow(ABplus-ABminus,2)/(double)(n[l]);
-				}
-				//printf("zwischen %d: ergErgebnis: %f\n",l,ergErgebnis);
-				InPipeSchreiben(ergPipe[f],ergErgebnis);                // Ergebnisse an Hauptinstanz des Programms uebermitteln
-				InPipeSchreiben(mittelwertPipe[f],ergMittelwert);
-				InPipeSchreiben(quadratsummePipe[f],ergQuadratsumme);
-				exit(0);  // Duplizierte Instanzen beenden
-			}
-		}
-
-		double ergMittelwerte=0;
-		double ergQuadratsummen=0;
-		for(int f=0;f<Threadanzahl;++f)  //Ergebnisse aus pipe auslesen
-		{
-			double e=AusPipeLesen(ergPipe[f]);
-                        printf("%f\n",e);
-                        Gesamtergebnis+=e/(double)(Threadanzahl);
-			ergMittelwerte+=e/(double)(Threadanzahl);
-			ergQuadratsummen+=AusPipeLesen(quadratsummePipe[f])/(double)(Threadanzahl);
-		}
-		double var=ergQuadratsummen-pow(ergMittelwerte,2);
-		printf("Level %d,  n_l=%d, k_l=%d: %.2lf (%.5lf)\n", l, Threadanzahl*n[l], k[l],ergMittelwerte,sqrt(var));
-	}
-	printf("AndersenBroadie");
-	if(L>1)printf(" (Multilevel)");
-	printf(": %f\n\n",Gesamtergebnis);
-	ErgebnisAnhaengen(Gesamtergebnis);// Ergebnisse werden in ergebnisse.dat ausgegeben
+	printf("not implemented yet\n");
+//	int L=4;   //Anzahl der Level
+//	double n0=200; //Anzahl der Pfade
+//	double k0=300; // Anzahl der subsimulaions
+//	double faktor=2; // Das ist KAPPA !
+//
+//	LSM_setting();
+//
+//	betas=betasAusDateiLaden();
+//
+//	double Gesamtergebnis=0;
+//
+//	int k[L];
+//	int n[L];
+//	k[0]=k0;
+//	n[0]=n0;
+//
+//	for(int l=0;l<L;++l) //Anfang des Levels
+//	{
+//		n[l]=(int)ceil(n0*pow(faktor,-(double)l)/Threadanzahl);  // neue n und k setzen
+//		k[l]=(int)(k0*pow(faktor,(double)l));
+//
+//		// Pipes zur Uebergabe von ergebnissen an das Hauptprogramm definieren
+//		int ergPipe[Threadanzahl][2];			//zur uebergabe der differenz
+//		int mittelwertPipe[Threadanzahl][2];   	// zur uebergabe der mittelwerte
+//		int quadratsummePipe[Threadanzahl][2]; 	// zur uebergabe von summe (x_i^2)
+//
+//		for(int z=0;z<Threadanzahl;++z){// pipes erzeugen
+//			pipe(mittelwertPipe[z]);
+//			pipe(quadratsummePipe[z]);
+//			pipe(ergPipe[z]);
+//		}
+//
+//		int pid;
+//		for(int f=0;f<Threadanzahl;++f)
+//		{
+//			pid = fork();  // Prozess duplizieren
+//			if (pid == 0)
+//			{
+//				srand(getpid()+f+time(NULL));  //seed von Zufallsgeneratoren setzen, damit nicht jeder instanz das gleiche
+//				MT.seed(getpid()+f+time(NULL)); // Ergebnis berechnet
+//
+//				double ** x=DoubleFeld(N,D);
+//				double ** wdiff=DoubleFeld(N,D);
+//				double ** sprue=DoubleFeld(N,D);
+//
+//				for(int nn=0;nn<N;++nn)
+//					for(int d=0;d<D;++d)
+//						sprue[nn][d]=0; // keine Sprungprozesse
+//
+//				double ergErgebnis;
+//				double ergMittelwert=0;
+//				double ergQuadratsumme=0;
+//				for (int nn = 0; nn < n[l]; ++nn)  // nn-mal simulieren
+//				{
+//					for(int nnn=0;nnn<N;++nnn)       // Fuer jeden Zeitschritt
+//						for(int d=0;d<D;++d)      // Fue jedes asset
+//							if(antithetics && nn%2==1)   // jedes 2te mal
+//								wdiff[nnn][d]*=-1;else   //Antithetics!
+//									wdiff[nnn][d]=sqrt(dt)*nextGaussian();  // neue Wdiff
+//					Pfadgenerieren(x,wdiff,sprue);
+//					double ABminus=0;
+//					if(l>0)ABminus=AndersenBroadieEinzel(x,k[l-1]); //im ersten Schritt keine Subtraktion
+//					double ABplus=AndersenBroadieEinzel(x,k[l]);
+//					ergErgebnis+=  (ABplus-ABminus)/(double)(n[l]);
+//					ergMittelwert+=(ABplus-ABminus)/(double)(n[l]);
+//					ergQuadratsumme+=pow(ABplus-ABminus,2)/(double)(n[l]);
+//				}
+//				//printf("zwischen %d: ergErgebnis: %f\n",l,ergErgebnis);
+//				InPipeSchreiben(ergPipe[f],ergErgebnis);                // Ergebnisse an Hauptinstanz des Programms uebermitteln
+//				InPipeSchreiben(mittelwertPipe[f],ergMittelwert);
+//				InPipeSchreiben(quadratsummePipe[f],ergQuadratsumme);
+//				exit(0);  // Duplizierte Instanzen beenden
+//			}
+//		}
+//
+//		double ergMittelwerte=0;
+//		double ergQuadratsummen=0;
+//		for(int f=0;f<Threadanzahl;++f)  //Ergebnisse aus pipe auslesen
+//		{
+//			double e=AusPipeLesen(ergPipe[f]);
+//                        printf("%f\n",e);
+//                        Gesamtergebnis+=e/(double)(Threadanzahl);
+//			ergMittelwerte+=e/(double)(Threadanzahl);
+//			ergQuadratsummen+=AusPipeLesen(quadratsummePipe[f])/(double)(Threadanzahl);
+//		}
+//		double var=ergQuadratsummen-pow(ergMittelwerte,2);
+//		printf("Level %d,  n_l=%d, k_l=%d: %.2lf (%.5lf)\n", l, Threadanzahl*n[l], k[l],ergMittelwerte,sqrt(var));
+//	}
+//	printf("AndersenBroadie");
+//	if(L>1)printf(" (Multilevel)");
+//	printf(": %f\n\n",Gesamtergebnis);
+//	ErgebnisAnhaengen(Gesamtergebnis);// Ergebnisse werden in ergebnisse.dat ausgegeben
 }
 
 double** AmericanOption::betasAusDateiLaden() {
@@ -152,7 +152,7 @@ double AmericanOption::AndersenBroadieEinzel(double ** x, int nsubpaths, int sta
         }
         for (int laufsub = 0; laufsub < nsubpaths; ++laufsub) {
             if (verbose)printf("Nested simulation no. %d: \n", laufsub);
-            Pfadgenerieren(xx, n, x[n]);
+            Pfadgenerieren(xx, n, x[n],NULL);
             if (verbose) for (int i = 0; i < N; i++)printf("%.2lf, ", xx[i][0]);
             int ex_time = N - 1;
             for (int testen = N - 1; testen > n; --testen)

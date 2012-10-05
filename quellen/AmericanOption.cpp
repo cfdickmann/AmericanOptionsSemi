@@ -1,12 +1,11 @@
 #include "AmericanOption.h"
 #include <ctype.h>
-#include <sys/wait.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h> 
 #include <string.h>
 #include <stdlib.h>
 #include <string.h>
+#include "RNG.h"
 
 using namespace std;
 
@@ -90,81 +89,33 @@ void AmericanOption::neueExerciseDates(int n) {
     if (verbose && !parallelTest)printf("\n");
 }
 
-void AmericanOption::Pfadgenerieren(double** X) {
-    double** wdiff = DoubleFeld(N, D);
-    double** sprue = DoubleFeld(N, D);
-    for (int n = 0; n < N; ++n)
-        for (int j = 0; j < D; ++j) {
-            wdiff[n][j] = sqrt(dt) * nextGaussian();
-            //			if(rand()%40==0)  wdiff[n][j] = sqrt(dt) * qnorm( (double)(random())/(double)(RAND_MAX) )*6;}
-            int NumberOfJumps = Poisson(lambdaJump * dt);
-            sprue[n][j] = 0;
-            for (int jump = 0; jump < NumberOfJumps; ++jump)
-                sprue[n][j] += newSprung();
-        }
-    Pfadgenerieren(X, wdiff, sprue);
-}
+void AmericanOption::Pfadgenerieren(double** X, int start, double * S,  RNG* generator) {
+	bool generator_noch_loeschen=false;
+	if(generator==NULL)generator=new RNG;
 
-void AmericanOption::Pfadgenerieren(double** X, int start, double * S) {
-    double** wdiff = DoubleFeld(N, D);
-    double** sprue = DoubleFeld(N, D);
-    for (int n = 0; n < N; ++n)
-        for (int j = 0; j < D; ++j) {
-            wdiff[n][j] = sqrt(dt) * nextGaussian();
-            //			if(rand()%40==0)  wdiff[n][j] = sqrt(dt) * qnorm( (double)(random())/(double)(RAND_MAX) )*6;}
-            int NumberOfJumps = Poisson(lambdaJump * dt);
-            sprue[n][j] = 0;
-            for (int jump = 0; jump < NumberOfJumps; ++jump)
-                sprue[n][j] += newSprung();
-        }
-    Pfadgenerieren(X, wdiff, sprue, start, S);
-    for (int i = 0; i < N; ++i) {
-        free(wdiff[i]);
-        free(sprue[i]);
-    }
-    free(wdiff);
-    free(sprue);
-}
+	double* wdiff=DoubleFeld(D);
 
-void AmericanOption::Pfadgenerieren(double** X, double** wdiff, double** sprue) {
-    Pfadgenerieren(X, wdiff, sprue, 0, X0);
-}
+	for (int j = 0; j < D; ++j)
+		X[start][j] = S[j];
 
-void AmericanOption::Pfadgenerieren(double** X, double** wdiff, double** sprue, int start, double * S) {
-    for (int j = 0; j < D; ++j)
-        X[start][j] = S[j];
+	for (int n = start + 1; n < N; ++n) {
+		if (PfadModell == ITO){
+			for(int d=0;d<D;++d)
+				wdiff[d]=sqrt(dt)*generator->nextGaussian();
+			for (int d = 0; d < D; ++d)
+				X[n][d] = X[n - 1][d] * exp((((r - delta) - 0.5 * sigma[d] * sigma[d]) * dt + sigma[d] * wdiff[d]));
+		}
 
-    for (int j = 0; j < D; ++j) {
-        for (int n = start + 1; n < N; ++n) {
-            if (PfadModell == ITO)
-                X[n][j] = X[n - 1][j] * exp((((r - delta) - 0.5 * sigma[j] * sigma[j]) * dt + sigma[j] * wdiff[n][j]));
-            if (PfadModell == EULER)
-                X[n][j] = X[n - 1][j] + (r - delta) * X[n - 1][j] * dt + sigma[j] * X[n - 1][j] * wdiff[n][j];
-            if (PfadModell == CIR)
-                X[n][j] = max(X[n - 1][j] + kappa * (theta - X[n - 1][j]) * dt + sigma[j] * sqrt(X[n - 1][j]) * wdiff[n][j], 0); //mean reversion
-            if (PfadModell == JDI)
-                X[n][j] = X[n - 1][j] * exp(((r - delta) - 0.5 * sigma[j] * sigma[j]) * dt + sigma[j] * wdiff[n][j]) * exp(sprue[n][j]);
-            //			X[n][j] = max( X[n - 1][j] + (r-delta) *X[n-1][j]*dt + sigma[j] *X[n-1][j]*wdiff[n][j] +X[n - 1][j] *sprue[n][j],0);
-        }
-        if (X[N - 1][0] <= 0)printf("Error0\n");
-    }
-}
+		if (PfadModell == EULER){
+			for(int d=0;d<D;++d)
+				wdiff[d]=sqrt(dt)*generator->nextGaussian();
+			for (int d = 0; d < D; ++d)
+				X[n][d] = X[n - 1][d] + (r - delta) * X[n - 1][d] * dt + sigma[d] * X[n - 1][d] * wdiff[d];
+		}
+	}
 
-double AmericanOption::newSprung() {
-    return nextGaussian() * eta/*-0.5*eta*eta*/;
-}
-
-int AmericanOption::Poisson(double theta) {
-    double p = exp(-theta);
-    double F = p;
-    double N = 0;
-    double U = MT();
-    while (U > F) {
-        N++;
-        p = p * theta / N;
-        F += p;
-    }
-    return N;
+	if (X[N - 1][0] < 0)printf("Error0\n");
+if(generator_noch_loeschen)delete generator;
 }
 
 double AmericanOption::EuropeanPut1D_discounted(double t, double T, double S, double strike) {
