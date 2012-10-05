@@ -1,7 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
-
+#include "MTRand.h"
 #include "math.h"
 #include "stdlib.h"
 #include "AmericanOption.h"
@@ -28,10 +28,11 @@ void AmericanOption::LongstaffSchwartz() { //TODO
 	betas=DoubleFeld(N,Mphi);
 
 	//i
+	MT.seed(time(NULL)+getpid());
 	srand(time(NULL));
 	if(verbose)printf("Pfade erstellen\n");
 	for (int m = 0; m < M; ++m){
-		Pfadgenerieren(X[m],0,X0,NULL);
+		Pfadgenerieren(X[m]);
 	}
 
 	//ii
@@ -118,12 +119,22 @@ void AmericanOption::LongstaffSchwartz() { //TODO
 		if (pid == 0)
 		{
 			srand(f);
+			MT.seed(getpid()+f+time(NULL));
 			double e=0;
 			double** X=DoubleFeld(N,D);
+			double** wdiff=DoubleFeld(N,D);
+			double** sprue=DoubleFeld(N,D);
 			int durchlaeufe=LSM_Mtesting/Threadanzahl; //10000000/Threadanzahl
 			for (int k = 0; k < durchlaeufe; ++k){
 				for(int n=0;n<N;++n)
-				Pfadgenerieren(X,0,X0,NULL);
+					for(int j=0;j<D;++j){
+						wdiff[n][j]=sqrt(dt)*nextGaussian();
+						int NumberOfJumps=Poisson(lambdaJump*dt);
+						sprue[n][j]=0;
+						for(int jump=0;jump<NumberOfJumps;++jump)
+							sprue[n][j]+=newSprung();
+					}
+				Pfadgenerieren(X,wdiff,sprue);
 				double erg=payoff(X[N - 1],N - 1 );
 				for (int lau = 1; lau<N-1; ++lau)
 					if (LSM_C_estimated(X[lau],lau)<= payoff( X[lau],lau)){

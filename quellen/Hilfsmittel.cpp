@@ -1,44 +1,21 @@
 #include "Hilfsmittel.h"
 #include <stdio.h>
 #include <iostream>
+#include <stdlib.h>
 #include <string.h>
+//#include "../src/solvers.h"
+using namespace std;
+//using namespace alglib;
 #include <math.h>
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
 #include <cstring>
+
+
 #include <math.h>
 #include <stdlib.h>
 
-using namespace std;
-
-void MatrixAusgeben(double**  a, int D)
-{
-	printf("\n");
-	for(int d=0;d<D;++d){
-		for(int f=0;f<D;++f)
-			printf("%.10lf, ",a[d][f]);
-		printf("\n");
-	}
-}
-
-double** MatrixMultiplizieren(double**  a,double**  b,int D)
-{
-	double**  erg=DoubleFeld(D,D);
-	for(int d=0;d<D;++d)
-		for(int f=0;f<D;++f){
-			double summe=0;
-			for(int k=0;k<D;++k)
-				summe+=a[d][k]*b[k][f];
-			erg[d][f]=summe;
-		}
-	return erg;
-}
-
-double betrag(double x)
-{
-	return x<0?-x:x;
-}
 
 double* alphasLaden(int K)
 {
@@ -104,23 +81,12 @@ int argMin(double* v, int l)
 
 void ErgebnisAnhaengen(double d)
 {
-	ofstream File("ergebnisse2.txt", ios::out|ios::app);
+//	ofstream File("ergebnisseSUPER.txt", ios::out|ios::app);
+	ofstream File("ergebnisse.txt", ios::out|ios::app);
 	if (File.is_open())
+	{
 		File << d << endl;
-}
-
-void ErgebnisAnhaengenML(double d)
-{
-	ofstream File("ergebnisseML2.txt", ios::out|ios::app);
-	if (File.is_open())
-		File << d << endl;
-}
-
-void ErgebnisAnhaengen(double d, char* filename)
-{
-	ofstream File(filename, ios::out|ios::app);
-	if (File.is_open())
-		File << d << endl;
+	}
 }
 
 void BubbleSort(double* werte, int* index, int l)
@@ -191,9 +157,9 @@ void InPipeSchreiben(int* pipe, double wert ){
 
 double AusPipeLesen(int* pipe){
 	close(pipe[1]);
-	char readbuffer[200];
+	char readbuffer[2000];
 	read (pipe[0],readbuffer, sizeof(readbuffer));
-	return atof(readbuffer);
+        return atof(readbuffer);
 }
 
 double Max(double* v, int l)
@@ -305,87 +271,51 @@ double CumulativeNormalDistribution(double x) {
 	return (1. - neg) * y + neg * (1. - y);
 }
 
+double * DoubleFeld(int m){
+	double* erg=(double*)malloc(sizeof(double)*m);
+	return erg;
+}
+
 int * IntFeld(int m){
-	int* erg=new int[m];
+	int* erg=(int*)malloc(sizeof(int)*m);
 	return erg;
 }
 
 int ** IntFeld(int m,int n){
-	int** erg=new int*[m];
+	int** erg=(int**)malloc(sizeof(int*)*m);
 	for(int i=0;i<m;++i)
-		erg[i]=IntFeld(n);
-	return erg;
-}
-
-double * DoubleFeld(int m){
-	double* erg=new double[m];
+		erg[i]=(int*)malloc(sizeof(int)*n);
 	return erg;
 }
 
 double ** DoubleFeld(int m,int n){
-	double** erg=new double*[m];
+	double** erg=(double**)malloc(sizeof(double*)*m);
 	for(int i=0;i<m;++i)
-		erg[i]=new double[n];
+		erg[i]=(double*)malloc(sizeof(double)*n);
 	return erg;
 }
 
 double *** DoubleFeld(int m, int n, int o){
-	double*** erg=new double**[m];
-	for(int i=0;i<m;++i)
-		erg[i]=DoubleFeld(n,o);
+	double*** erg=(double***)malloc(sizeof(double**)*m);
+	for(int i=0;i<m;++i){
+		erg[i]=(double**)malloc(sizeof(double*)*n);
+		for(int j=0;j<n;++j)
+			erg[i][j]=(double*)malloc(sizeof(double)*o);
+	}
 	return erg;
 }
 
 double **** DoubleFeld(int m, int n, int o, int p){
-	double **** erg =new double ***[m];
-	for(int i=0;i<m;++i)
-		erg[i]=DoubleFeld(n,o,p);
+	double**** erg=(double****)malloc(sizeof(double***)*m);
+	for(int i=0;i<m;++i){
+		erg[i]=(double***)malloc(sizeof(double**)*n);
+		for(int j=0;j<n;++j){
+			erg[i][j]=(double**)malloc(sizeof(double*)*o);
+			for(int k=0;k<o;k++)
+				erg[i][j][k]=(double*)malloc(sizeof(double)*p);
+		}
+	}
 	return erg;
-}
-
-double ***** DoubleFeld(int m, int n, int o, int p, int q){
-	double ***** erg= new double****[m];
-	for(int i=0;i<m;++i)
-		erg[i]=DoubleFeld(n,o,p,q);
-	return erg;
-}
-
-void deleteDoubleFeld(double * D, int m){
-	delete[] D;
-}
-
-void deleteDoubleFeld(double ** D  ,int m,int n){
-	for(int i=0;i<m;++i)
-		deleteDoubleFeld(D[i],n);
-	delete[] D;
-}
-
-void deleteDoubleFeld(double *** D  ,int m, int n, int o){
-	for(int i=0;i<m;++i)
-		deleteDoubleFeld(D[i],n,o);
-	delete[] D;
-}
-
-void deleteDoubleFeld(double **** D , int m, int n, int o, int p){
-	for(int i=0;i<m;++i)
-		deleteDoubleFeld(D[i],n,o,p);
-	delete[] D;
-}
-
-void deleteDoubleFeld(double ***** D, int m, int n, int o, int p, int q){
-	for(int i=0;i<m;++i)
-		deleteDoubleFeld(D[i],n,o,p,q);
-	delete[] D;
-}
-
-void deleteIntFeld(int * D, int m){
-	delete[] D;
-}
-
-void deleteIntFeld(int ** D  ,int m,int n){
-	for(int i=0;i<m;++i)
-		deleteIntFeld(D[i],n);
-	delete[] D;
 }
 
 int* array_machen(int z)
@@ -395,75 +325,65 @@ int* array_machen(int z)
 	return erg;
 }
 
+
 int* pivot(double** A, int Mphi) {
-	int nn = Mphi;
-	int* pivot = (int*)malloc(sizeof(int)*nn);
-	for (int j = 0; j < nn - 1; j++) {
-		double max = fabs(A[j][j]);
-		int imax = j;
-		for (int i = j + 1; i < nn; i++)
-			if (fabs(A[i][j]) > max) {
-				max = fabs(A[i][j]);
-				imax = i;
-			}
-		double* h =DoubleFeld(Mphi);
-		for(int i=0;i<Mphi;++i)h[i]=A[j][i];
-		A[j] = A[imax];
-		A[imax] = h;
-		pivot[j] = imax;
-		for (int i = j + 1; i < nn; i++) {
-			double f = -A[i][j] / A[j][j];
-			for (int k = j + 1; k < nn; k++)
-				A[i][k] += f * A[j][k];
-			A[i][j] = -f;
-		}
-	}
-	return pivot;
-}
+        int nn = Mphi;
+        int* pivot = (int*)malloc(sizeof(int)*nn);
+        for (int j = 0; j < nn - 1; j++) {
+            double max = fabs(A[j][j]);
+            int imax = j;
+            for (int i = j + 1; i < nn; i++)
+                if (fabs(A[i][j]) > max) {
+                    max = fabs(A[i][j]);
+                    imax = i;
+                }
+            double* h =DoubleFeld(Mphi);
+            		for(int i=0;i<Mphi;++i)h[i]=A[j][i];
+            A[j] = A[imax];
+            A[imax] = h;
+            pivot[j] = imax;
+            for (int i = j + 1; i < nn; i++) {
+                double f = -A[i][j] / A[j][j];
+                for (int k = j + 1; k < nn; k++)
+                    A[i][k] += f * A[j][k];
+                A[i][j] = -f;
+            }
+        }
+        return pivot;
+    }
 
-double* LGSloesen(double** AA, double* bb, int Mphi){
-	double** A=new double*[Mphi];
-	for(int m=0;m<Mphi;++m)
-		A[m]=new double[Mphi];
+double* LGSloesen(double** A, double* b, int Mphi){
+	  // loest das LGS Ax = b nach x auf
 
-	for(int m=0;m<Mphi;++m)
-		for(int n=0;n<Mphi;++n)
-			A[m][n]=AA[m][n];
+	        double** B =DoubleFeld(Mphi,Mphi);
+	        for(int i=0;i<Mphi;++i)
+	        	for(int j=0;j<Mphi;++j)
+	        		B[i][j]=A[i][j];
+	        double* x = DoubleFeld(Mphi);
+	        for(int i=0;i<Mphi;++i)x[i]=b[i];
 
-	double* b=new double[Mphi];
-	for(int m=0;m<Mphi;++m)
-		b[m]=bb[m];
-	// loest das LGS Ax = b nach x auf
-
-			double** B =DoubleFeld(Mphi,Mphi);
-	for(int i=0;i<Mphi;++i)
-		for(int j=0;j<Mphi;++j)
-			B[i][j]=A[i][j];
-	double* x = DoubleFeld(Mphi);
-	for(int i=0;i<Mphi;++i)x[i]=b[i];
-
-	int* piv = pivot(B,Mphi);
-	int nn = Mphi;
-	for (int i = 0; i < nn - 1; i++) {
-		double h = b[piv[i]];
-		b[piv[i]] = b[i];
-		b[i] = h;
-	}
-	for (int j = 0; j < nn; j++) {
-		x[j] = b[j];
-		for (int i = 0; i < j; i++)
-			x[j] -= B[j][i] * x[i];
-	}
-	for (int j = nn - 1; j >= 0; j--) {
-		for (int k = j + 1; k < nn; k++)
-			x[j] -= B[j][k] * x[k];
-		x[j] /= B[j][j];
-	}
-	return x;
+	        int* piv = pivot(B,Mphi);
+	        int nn = Mphi;
+	        for (int i = 0; i < nn - 1; i++) {
+	            double h = b[piv[i]];
+	            b[piv[i]] = b[i];
+	            b[i] = h;
+	        }
+	        for (int j = 0; j < nn; j++) {
+	            x[j] = b[j];
+	            for (int i = 0; i < j; i++)
+	                x[j] -= B[j][i] * x[i];
+	        }
+	        for (int j = nn - 1; j >= 0; j--) {
+	            for (int k = j + 1; k < nn; k++)
+	                x[j] -= B[j][k] * x[k];
+	            x[j] /= B[j][j];
+	        }
+	        return x;
 
 
 
-	/*
+/*
 
 	//************************
 	    real_1d_array bb;
@@ -491,7 +411,7 @@ double* LGSloesen(double** AA, double* bb, int Mphi){
 		erg[k]=e[k];
 	return erg;
 	//		if(verbose)printf("ausrechnen fertig\n");
-	 */
+*/
 }
 
 //

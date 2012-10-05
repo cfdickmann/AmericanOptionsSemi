@@ -227,7 +227,7 @@ void AmericanOption::BFGS_StochIntgenerieren(int threadNummer)
 
 	if(verbose)printf("Pfade erzeugen\n");
 	for (int m = mAnfang; m < mEnde; ++m){
-		Pfadgenerieren(X[m],0,X0, NULL);
+		Pfadgenerieren(X[m],WDiff[m],Sprue[m]);
 	}
 
 	if(verbose)printf("StochInt generieren\n");
@@ -279,7 +279,7 @@ void AmericanOption::BFGS_setting()
 	}
 
 	srand(time(NULL));
-
+	MT.seed(time(NULL));
 	if(verbose)printf("Zufallszahlen erstellen\n");
 	for (int m = 0; m < M; ++m)
 		for(int n=0;n<N;++n){
@@ -353,7 +353,7 @@ void AmericanOption::BFGS_parallelTesting(double number_of_replications)
 
 double AmericanOption::BFGS_testing(double number_of_replications){
 	neueExerciseDates(Testing_Dates);
-
+	MT.seed(time(NULL)+getpid());
 	srand(time(NULL)+getpid());
 	if(!nesterov && ! bfgs){
 		alpha=alphasLaden(K);
@@ -376,7 +376,16 @@ double AmericanOption::BFGS_testing(double number_of_replications){
 
 	for(int lauf=1;lauf<=number_of_replications;lauf++)
 	{
-		Pfadgenerieren(x,0,X0,NULL);
+		for (int n = 0; n < N; ++n)
+			for(int j=0;j<D;++j){
+				wdiff[n][j] = sqrt(dt) * nextGaussian();
+				int NumberOfJumps=Poisson(lambdaJump*dt);
+				sprue[n][j]=0;
+				for(int jump=0;jump<NumberOfJumps;++jump)
+					sprue[n][j]+=newSprung();
+			}
+
+		Pfadgenerieren(x,wdiff,sprue);
 
 		if(lauf<Npfade+1){
 			for(int n=0;n<N;++n)

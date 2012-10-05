@@ -13,6 +13,7 @@
 #include <glpk.h>
 
 using namespace std;
+//using namespace alglib;
 
 AmericanOption* zeiger3;
 
@@ -24,10 +25,22 @@ void* DELEGATE_stuetzerwartung_ausrechnen(void* data) {
 
 double **** AmericanOption::semi_inner_paths_erzeugen(){
     double**** erg = DoubleFeld(J, M, N, D);
-    for (int j = 0; j < J; ++j)
-        for (int m = 0; m < M; ++m)
-            Pfadgenerieren(erg[j][m], 0, stuetzpunkte[j],NULL);
-            //Subsimulation werden zuerst ausgehen von 0 erzeugt und später passend angeklebt.
+    srand(getpid() + time(NULL));
+    MT.seed(getpid() + time(NULL));
+    for (int j = 0; j < J; ++j) {
+        double** wdiff = DoubleFeld(N, D);
+        double** sprue = DoubleFeld(N, D);
+        for (int m = 0; m < M; ++m) {
+            for (int n = 0; n < N; ++n)
+                for (int j = 0; j < D; ++j) {
+                    if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * BoxMuller((double) (random()) / (double) (RAND_MAX), (double) (random()) / (double) (RAND_MAX));
+//                    if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * BoxMuller(MT(),MT());
+                    else wdiff[n][j] = -wdiff[n][j]; //antithetics
+                    sprue[n][j] = 0;
+                }
+            Pfadgenerieren(erg[j][m], wdiff, sprue, 0, stuetzpunkte[j]);
+        }
+    }
     return erg;
 }
 
@@ -37,7 +50,8 @@ void AmericanOption::semi() {
     LSM_setting();
 
     semi_testingpaths = 100000; //Wie viele Testingpaths
-    int durchlaeufe = 3; //mehrmals pro zeitschritt optimieren 5
+    //    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
+    int durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
 
     if (D == 1) {
         Mphi = 1; //56
@@ -48,7 +62,7 @@ void AmericanOption::semi() {
     if (D == 2) {
         Mphi = 1712; //37   // Basisfunktionen
         J = 121; //10*10;//49 // Stuetzpunkte
-        M = 1000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+        M = 5000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
     }
 
     if (D == 3) {
@@ -61,19 +75,20 @@ void AmericanOption::semi() {
     if (D > 3) {
         printf("Error 45678\n");
     }
-
     printf("Dimensionen: %d\n",D);
     printf("Basisfunktionen: %d \n",Mphi);
     printf("Subsimulation: %d\n",M);
     printf("Stützpunkte: %d\n",J);
     printf("Durchläufe: %d\n",durchlaeufe);
-
+    //for(int iii=0;iii<semi_durchlaeufe;++iii)
+    //    {
     if (verbose)printf("stuetzpunkte setzen\n");
     stuetzpunkte = DoubleFeld(J, D);
     stuetzpunkte_setzen();
 
     if (verbose)printf("innere Pfade erzeugen\n");
 
+  //  printf("asd %f\n", europeanValue(X0, 0, T));
 
     semi_inner_paths = (double*****) malloc(sizeof (double****) *durchlaeufe);
     for (int i = 0; i < durchlaeufe; ++i)
@@ -88,24 +103,72 @@ void AmericanOption::semi() {
         nactual = n;
 
         double** semi_betas_Feld = DoubleFeld(durchlaeufe, Mphi);
-        for (int durchlaufactual = 0; durchlaufactual < durchlaeufe; ++durchlaufactual) {
-            //durchlaufactual = i;
+        for (int i = 0; i < durchlaeufe; ++i) {
+            durchlaufactual = i;
 
             //Stuetzerwartung ausrechnen
+            time_t time1 = time(NULL);
             pthread_t threads[Threadanzahl];
             for (int j = 0; j < Threadanzahl; j++)
                 pthread_create(&threads[j], NULL, DELEGATE_stuetzerwartung_ausrechnen, array_machen(j));
             for (int j = 0; j < Threadanzahl; j++)
                 pthread_join(threads[j], NULL);
             if (verbose)stuetzpunkte_ausgeben();
+            time_t time2 = time(NULL);
+            if (verbose)printf("Time for Estimation time:%ld seconds\n", time2 - time1);
 
             //LP aufstellen
             Matrix = DoubleFeld(J, Mphi);
             RS = DoubleFeld(J);
             C = DoubleFeld(Mphi);
+
             RS = stuetzerwartung;
 
-            semi_betas_Feld[durchlaufactual] = LP_mitGLPK_Loesen(0, J);
+           // int indexlaenge = 1000;
+         //   time_t time3 = time(NULL);
+            semi_betas_Feld[i] = LP_mitGLPK_Loesen(NULL,0);
+         //   time_t time4 = time(NULL);
+
+//            int* index = new int[indexlaenge];
+//            for (int m = 0; m < indexlaenge; ++m)
+//                index[m] = LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4 + m;
+//
+//            if (verbose) {
+//                printf("Fuer die erste optimierung:\n");
+//                for (int m = 0; m < indexlaenge; ++m)
+//                    printf("%d, ", index[m]);
+//                printf("\n");
+//            }
+//
+
+//
+//            time_t time3 = time(NULL);
+//            semi_betas_Feld[i] = LP_mitGLPK_Loesen(index, indexlaenge);
+//            time_t time4 = time(NULL);
+//            if (verbose)printf("Time for Optimization:%ld seconds\n", time4 - time3);
+//
+//            int indexlauf = 0;
+//            index = new int[Mphi];
+//            for (int m = 0; m < LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4; ++m) {
+//                index[indexlauf] = m;
+//                indexlauf++;
+//            }
+//            for (int m = 0; m < 1000; ++m)
+//                if (semi_betas_Feld[i][m] != 0) {
+//                    index[indexlauf] = m + LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4;
+//                    indexlauf++;
+//                }
+//            indexlaenge = indexlauf;
+//            if (verbose) {
+//                printf("Fuer die zweite optimierung:\n");
+//                for (int m = 0; m < indexlaenge; ++m)
+//                    printf("%d, ", index[m]);
+//                printf("\n");
+//            }
+
+            semi_betas_Feld[i] = LP_mitGLPK_Loesen(0, J);
+
+
         }
 
         //Durchschnitt als Ergebniss nehmen
@@ -115,7 +178,6 @@ void AmericanOption::semi() {
                 semi_betas[n][m] += semi_betas_Feld[i][m] / (double) durchlaeufe;
         }
 
-        //Indices ungleich NULL indizieren
         int indexlauf = 0;
         for (int m = 0; m < Mphi; ++m)
             if (semi_betas[n][m] != 0) {
@@ -129,7 +191,7 @@ void AmericanOption::semi() {
         if (verbose)semi_ergebnisse_ausgeben();
     }
     semi_testing();
-
+    //    }
 }
 
 double AmericanOption::linearCombinationOfBasis(int zeit, double* x, int d) {
@@ -266,14 +328,27 @@ void AmericanOption::semi_test(int threadnummer) {
     semi_ergebnisse[threadnummer] = 0;
     
     double** x = DoubleFeld(N, D);
+    double** wdiff = DoubleFeld(N, D);
+    double** sprue = DoubleFeld(N, D);
+
+    int seed = time(NULL) + threadnummer + getpid();
+    srand(seed);
+
     int durchlaeufe = (int)(double)(semi_testingpaths) / (double)(Threadanzahl);
     for (int m = 0; m < durchlaeufe; ++m) {
-
-        Pfadgenerieren(x,0,X0,NULL);
+        for (int n = 0; n < N; ++n)
+            for (int j = 0; j < D; ++j) {
+                if (m % 2 == 0)wdiff[n][j] = sqrt(dt) *
+                        BoxMuller((double)(rand())/(double)(RAND_MAX),(double)(rand())/(double)(RAND_MAX));
+                else wdiff[n][j] = -wdiff[n][j]; //antithetics
+                sprue[n][j] = 0;
+            }
+        Pfadgenerieren(x, wdiff, sprue);
         double sum = 0;
         for (int n = 0; n < N; ++n)
             sum += semi_f(n, x[n]);
         semi_ergebnisse[threadnummer]+=sum/(double)(durchlaeufe);
+       
     }
 }
 
