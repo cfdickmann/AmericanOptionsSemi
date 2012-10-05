@@ -142,30 +142,30 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 //            return europeanValue(x,zeit*dt,zeit*dt+dt);
 //        }
 
-        if (j < 1400) {
+        if (j < 400) {
             double xx[D];
             for (int d = 0; d < D; ++d)
-                xx[d] = (double) j / 1400. * 4. * x[d];
+                xx[d] = (double) j / 400. * 4. * x[d];
             return payoff(xx, zeit);
         }
-        j -= 1400;
+        j -= 400;
 
-        if (j < 1400) {
+        if (j < 400) {
             double summe = 0;
             for (int d = 0; d < D; ++d)
                 summe += x[d];
-            return max(summe - (double) (j) / 1400. * 8. * (double) D * X0[0], 0);
+            return max(summe - (double) (j) / 400. * 8. * (double) D * X0[0], 0);
         }
-        j -= 1400;
+        j -= 400;
 
-        if (j < 1200) {
+        if (j < 200) {
            double summe = 0;
             for (int d = 0; d < D; ++d)
                 if(d!=j%3)
                 summe += x[d];
-            return max(summe - (double) (j) / 1200. * 6. * (double) D * X0[0], 0);
+            return max(summe - (double) (j) / 200. * 6. * (double) D * X0[0], 0);
         }
-        j -= 1200;
+        j -= 200;
 
         if (j < 200) {
            //double summe = 0;
