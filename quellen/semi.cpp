@@ -24,194 +24,165 @@ void* DELEGATE_stuetzerwartung_ausrechnen(void* data) {
 }
 
 double **** AmericanOption::semi_inner_paths_erzeugen(){
-    double**** erg = DoubleFeld(J, M, N, D);
-    RNG generator;
-    for (int j = 0; j < J; ++j)
-        for (int m = 0; m < M; ++m)
-            Pfadgenerieren(erg[j][m], 0, stuetzpunkte[j],&generator);
-        return erg;
+	double**** erg = DoubleFeld(J, M, N, D);
+
+	RNG generator;
+	for (int j = 0; j < J; ++j)
+		for (int m = 0; m < M; ++m)
+			Pfadgenerieren(erg[j][m], 0, stuetzpunkte[j],&generator);
+	return erg;
+
+	//	  //double**** erg = DoubleFeld(J, M, N, D);
+	//	    srand(getpid() + time(NULL));
+	//	    MT.seed(getpid() + time(NULL));
+	//	    for (int j = 0; j < J; ++j) {
+	//	        double** wdiff = DoubleFeld(N, D);
+	//	        double** sprue = DoubleFeld(N, D);
+	//	        for (int m = 0; m < M; ++m) {
+	//	            for (int n = 0; n < N; ++n)
+	//	                for (int j = 0; j < D; ++j) {
+	//	                    if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * BoxMuller((double) (random()) / (double) (RAND_MAX), (double) (random()) / (double) (RAND_MAX));
+	//	// if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * BoxMuller(MT(),MT());
+	//	                    else wdiff[n][j] = -wdiff[n][j]; //antithetics
+	//	                    sprue[n][j] = 0;
+	//	                }
+	//	            Pfadgenerieren(erg[j][m], wdiff, 0, stuetzpunkte[j]);
+	//	        }
+	//	    }
+	//	    return erg;
 }
 
 void AmericanOption::semi() {
-    zeiger3 = this;
-    mlsm = true;
-    LSM_setting();
+	zeiger3 = this;
+	mlsm = true;
+	LSM_setting();
 
-    semi_testingpaths = 100000; //Wie viele Testingpaths
-    //    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
-    int durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
+	semi_testingpaths = 100000; //Wie viele Testingpaths
+	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
+	int durchlaeufe = 2; //mehrmals pro zeitschritt optimieren 5
 
-    if (D == 1) {
-        Mphi = 1; //56
-        J = 80; //80
-        M = 10000;
-    }
+	if (D == 1) {
+		Mphi = 1; //56
+		J = 80; //80
+		M = 10000;
+	}
 
-    if (D == 2) {
-        Mphi = 1712; //37   // Basisfunktionen
-        J = 121; //10*10;//49 // Stuetzpunkte
-        M = 5000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
-    }
+	if (D == 2) {
+		Mphi = 1712; //37   // Basisfunktionen
+		J = 121; //10*10;//49 // Stuetzpunkte
+		M = 500; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+	}
 
-    if (D == 3) {
-        Mphi += 1400;
-        J = 125; //216   125
-        M = 5000;   //5000
-    }
+	if (D == 3) {
+		Mphi += 1200;
+		J = 125; //216   125
+		M = 5000;   //5000
+	}
 
-    if (D > 3) {
-        printf("Error 45678\n");
-    }
-    printf("Dimensionen: %d\n",D);
-    printf("Basisfunktionen: %d \n",Mphi);
-    printf("Subsimulation: %d\n",M);
-    printf("Stützpunkte: %d\n",J);
-    printf("Durchläufe: %d\n",durchlaeufe);
-    //for(int iii=0;iii<semi_durchlaeufe;++iii)
-    //    {
-    if (verbose)printf("stuetzpunkte setzen\n");
-    stuetzpunkte = DoubleFeld(J, D);
-    stuetzpunkte_setzen();
+	if (D > 3) {
+		printf("Error 45678\n");
+	}
+	printf("Dimensionen: %d\n",D);
+	printf("Basisfunktionen: %d \n",Mphi);
+	printf("Subsimulation: %d\n",M);
+	printf("Stützpunkte: %d\n",J);
+	printf("Durchläufe: %d\n",durchlaeufe);
 
-    if (verbose)printf("innere Pfade erzeugen\n");
+	if (verbose)printf("stuetzpunkte setzen\n");
+	stuetzpunkte = DoubleFeld(J, D);
+	stuetzpunkte_setzen();
 
-  //  printf("asd %f\n", europeanValue(X0, 0, T));
+	if (verbose)printf("innere Pfade erzeugen\n");
 
-    semi_inner_paths = (double*****) malloc(sizeof (double****) *durchlaeufe);
-    for (int i = 0; i < durchlaeufe; ++i)
-        semi_inner_paths[i] = semi_inner_paths_erzeugen();
-    semi_betas = DoubleFeld(N, Mphi);
-    semi_betas_index = IntFeld(N, Mphi);
-    semi_betas_index_max = IntFeld(N);
-    stuetzerwartung = DoubleFeld(J);
+	semi_inner_paths = (double*****) malloc(sizeof (double****) *durchlaeufe);
+	for (int i = 0; i < durchlaeufe; ++i)
+		semi_inner_paths[i] = semi_inner_paths_erzeugen();
+	semi_betas = DoubleFeld(N, Mphi);
+	semi_betas_index = IntFeld(N, Mphi);
+	semi_betas_index_max = IntFeld(N);
+	stuetzerwartung = DoubleFeld(J);
 
-    for (int n = N - 2; n >= 0; --n) {
-        printf("Zeitschritt %d\n", n);
-        nactual = n;
+	for (int n = N - 2; n >= 0; --n) {
+		printf("Zeitschritt %d\n", n);
+		nactual = n;
 
-        double** semi_betas_Feld = DoubleFeld(durchlaeufe, Mphi);
-        for (int i = 0; i < durchlaeufe; ++i) {
-            durchlaufactual = i;
+		double** semi_betas_Feld = DoubleFeld(durchlaeufe, Mphi);
+		for (int i = 0; i < durchlaeufe; ++i) {
+			durchlaufactual = i;
 
-            //Stuetzerwartung ausrechnen
-            time_t time1 = time(NULL);
-            pthread_t threads[Threadanzahl];
-            for (int j = 0; j < Threadanzahl; j++)
-                pthread_create(&threads[j], NULL, DELEGATE_stuetzerwartung_ausrechnen, array_machen(j));
-            for (int j = 0; j < Threadanzahl; j++)
-                pthread_join(threads[j], NULL);
-            if (verbose)stuetzpunkte_ausgeben();
-            time_t time2 = time(NULL);
-            if (verbose)printf("Time for Estimation time:%ld seconds\n", time2 - time1);
+			//Stuetzerwartung ausrechnen
+			time_t time1 = time(NULL);
+			pthread_t threads[Threadanzahl];
+			for (int j = 0; j < Threadanzahl; j++)
+				pthread_create(&threads[j], NULL, DELEGATE_stuetzerwartung_ausrechnen, array_machen(j));
+			for (int j = 0; j < Threadanzahl; j++)
+				pthread_join(threads[j], NULL);
+			if (verbose)stuetzpunkte_ausgeben();
+			time_t time2 = time(NULL);
+			if (verbose)printf("Time for Estimation time:%ld seconds\n", time2 - time1);
 
-            //LP aufstellen
-            Matrix = DoubleFeld(J, Mphi);
-            RS = DoubleFeld(J);
-            C = DoubleFeld(Mphi);
+			//LP aufstellen
+			Matrix = DoubleFeld(J, Mphi);
+			RS = DoubleFeld(J);
+			C = DoubleFeld(Mphi);
+			RS = stuetzerwartung;
 
-            RS = stuetzerwartung;
+			semi_betas_Feld[i] = LP_mitGLPK_Loesen(0, J);
+		}
 
-           // int indexlaenge = 1000;
-         //   time_t time3 = time(NULL);
-            semi_betas_Feld[i] = LP_mitGLPK_Loesen(NULL,0);
-         //   time_t time4 = time(NULL);
+		//Durchschnitt als Ergebniss nehmen
+		for (int m = 0; m < Mphi; ++m) {
+			semi_betas[n][m] = 0;
+			for (int i = 0; i < durchlaeufe; ++i)
+				semi_betas[n][m] += semi_betas_Feld[i][m] / (double) durchlaeufe;
+		}
 
-//            int* index = new int[indexlaenge];
-//            for (int m = 0; m < indexlaenge; ++m)
-//                index[m] = LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4 + m;
-//
-//            if (verbose) {
-//                printf("Fuer die erste optimierung:\n");
-//                for (int m = 0; m < indexlaenge; ++m)
-//                    printf("%d, ", index[m]);
-//                printf("\n");
-//            }
-//
+		int indexlauf = 0;
+		for (int m = 0; m < Mphi; ++m)
+			if (semi_betas[n][m] != 0) {
+				semi_betas_index[n][indexlauf] = m;
+				indexlauf++;
+			}
 
-//
-//            time_t time3 = time(NULL);
-//            semi_betas_Feld[i] = LP_mitGLPK_Loesen(index, indexlaenge);
-//            time_t time4 = time(NULL);
-//            if (verbose)printf("Time for Optimization:%ld seconds\n", time4 - time3);
-//
-//            int indexlauf = 0;
-//            index = new int[Mphi];
-//            for (int m = 0; m < LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4; ++m) {
-//                index[indexlauf] = m;
-//                indexlauf++;
-//            }
-//            for (int m = 0; m < 1000; ++m)
-//                if (semi_betas_Feld[i][m] != 0) {
-//                    index[indexlauf] = m + LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4;
-//                    indexlauf++;
-//                }
-//            indexlaenge = indexlauf;
-//            if (verbose) {
-//                printf("Fuer die zweite optimierung:\n");
-//                for (int m = 0; m < indexlaenge; ++m)
-//                    printf("%d, ", index[m]);
-//                printf("\n");
-//            }
+		semi_betas_index_max[n] = indexlauf;
 
-            semi_betas_Feld[i] = LP_mitGLPK_Loesen(0, J);
-
-
-        }
-
-        //Durchschnitt als Ergebniss nehmen
-        for (int m = 0; m < Mphi; ++m) {
-            semi_betas[n][m] = 0;
-            for (int i = 0; i < durchlaeufe; ++i)
-                semi_betas[n][m] += semi_betas_Feld[i][m] / (double) durchlaeufe;
-        }
-
-        int indexlauf = 0;
-        for (int m = 0; m < Mphi; ++m)
-            if (semi_betas[n][m] != 0) {
-                semi_betas_index[n][indexlauf] = m;
-                indexlauf++;
-            }
-
-        semi_betas_index_max[n] = indexlauf;
-
-        if (verbose)printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
-        if (verbose)semi_ergebnisse_ausgeben();
-    }
-    semi_testing();
-    //    }
+		if (verbose)printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
+		if (verbose)semi_ergebnisse_ausgeben();
+	}
+	semi_testing();
 }
 
 double AmericanOption::linearCombinationOfBasis(int zeit, double* x, int d) {
-    double sum = 0;
-    //    for (int m = 0; m < Mphi; ++m)
-    //        sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
-    int m;
-    for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
-        m = semi_betas_index[zeit][i];
-        sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
-    } 
-    return sum;
+	double sum = 0;
+	//    for (int m = 0; m < Mphi; ++m)
+	//        sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
+	int m;
+	for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
+		m = semi_betas_index[zeit][i];
+		sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
+	}
+	return sum;
 }
 
 double Min(double x, double y) {
-    return x < y ? x : y;
+	return x < y ? x : y;
 }
 
 double Min(double x, double y, double z) {
-    return min(x, min(y, z));
+	return min(x, min(y, z));
 }
 
 double AmericanOption::semi_f(int zeit, double* x) {
-    if (zeit == N - 1)
-        return payoff(x, zeit);
-    //----------------------------
-    //	if(nactual==N-1)
-    int dmax = argMax(x, D);
-    dmax = 0;
-    return max(0, payoff(x, zeit) - linearCombinationOfBasis(zeit, x, dmax));
+	if (zeit == N - 1)
+		return payoff(x, zeit);
+	//----------------------------
+	//	if(nactual==N-1)
+	int dmax = argMax(x, D);
+	dmax = 0;
+	return max(0, payoff(x, zeit) - linearCombinationOfBasis(zeit, x, dmax));
 
-    //return max(0, payoff(x,zeit) - linearCombinationOfBasis(zeit,x) );
-    /*
+	//return max(0, payoff(x,zeit) - linearCombinationOfBasis(zeit,x) );
+	/*
     //	else
             -------------
             //			return Min(
@@ -225,81 +196,81 @@ double AmericanOption::semi_f(int zeit, double* x) {
             //	return max(0, payoff(x,zeit) - LSM_C_estimated(x,zeit)); //TODO
             //		return max(0, payoff(x,zeit) - E);
             //return max(0, linearCombinationOfBasis(zeit,semi_betas[zeit],x));
-     */
+	 */
 }
 
 void AmericanOption::stuetzerwartung_ausrechnen(int k) {
-    for (int j = 0; j < J; ++j)
-        if (j % Threadanzahl == k) { // jeder Thread muss nur einige bearbeiten
-            stuetzerwartung[j] = 0;
-            for (int m = 0; m < M; ++m)
-                for (int nnn = nactual + 1; nnn < N; ++nnn)
-                    stuetzerwartung[j] += semi_f(nnn, semi_inner_paths[durchlaufactual][j][m][nnn - nactual]) / (double) (M);
-        }
+	for (int j = 0; j < J; ++j)
+		if (j % Threadanzahl == k) { // jeder Thread muss nur einige bearbeiten
+			stuetzerwartung[j] = 0;
+			for (int m = 0; m < M; ++m)
+				for (int nnn = nactual + 1; nnn < N; ++nnn)
+					stuetzerwartung[j] += semi_f(nnn, semi_inner_paths[durchlaufactual][j][m][nnn - nactual]) / (double) (M);
+		}
 }
 
 void AmericanOption::stuetzpunkte_setzen() {
 
-    if (D == 1) {
-        for (int i = 0; i < J; ++i)
-            if (option == MIN_PUT)
-                stuetzpunkte[i][0] = Strike * (double) (0.1 + (i + 1) / (double) J);
-            else
-                stuetzpunkte[i][0] = Strike * (double) (0.9 + (i + 1) / (double) J);
-    }
+	if (D == 1) {
+		for (int i = 0; i < J; ++i)
+			if (option == MIN_PUT)
+				stuetzpunkte[i][0] = Strike * (double) (0.1 + (i + 1) / (double) J);
+			else
+				stuetzpunkte[i][0] = Strike * (double) (0.9 + (i + 1) / (double) J);
+	}
 
-    if (D == 2) {
-        int WJ = (int) (sqrt(J));
-        //int WJ=7;
-        for (int i = 0; i < WJ; ++i)
-            for (int k = 0; k < WJ; ++k) {
-                stuetzpunkte[i * WJ + k][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
-                stuetzpunkte[i * WJ + k][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
-            }
-        //stuetzpunkte[30][0]=110;
-        //stuetzpunkte[30][1]=60;
-    }
+	if (D == 2) {
+		int WJ = (int) (sqrt(J));
+		//int WJ=7;
+		for (int i = 0; i < WJ; ++i)
+			for (int k = 0; k < WJ; ++k) {
+				stuetzpunkte[i * WJ + k][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
+				stuetzpunkte[i * WJ + k][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
+			}
+		//stuetzpunkte[30][0]=110;
+		//stuetzpunkte[30][1]=60;
+	}
 
-    if (D == 3) {
-        int WJ = (int) (ceil(pow(J, 1. / 3.)));
-        //            printf("sfd %d\n",WJ);exit(0);
-        for (int i = 0; i < WJ; ++i)
-            for (int k = 0; k < WJ; ++k)
-                for (int j = 0; j < WJ; ++j) {
-                    stuetzpunkte[i * WJ * WJ + k * WJ + j][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
-                    stuetzpunkte[i * WJ * WJ + k * WJ + j][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
-                    stuetzpunkte[i * WJ * WJ + k * WJ + j][2] = Strike * (0.01 + 2 * (double) (j) / (double) (WJ));
-                }
-    }
+	if (D == 3) {
+		int WJ = (int) (ceil(pow(J, 1. / 3.)));
+		//            printf("sfd %d\n",WJ);exit(0);
+		for (int i = 0; i < WJ; ++i)
+			for (int k = 0; k < WJ; ++k)
+				for (int j = 0; j < WJ; ++j) {
+					stuetzpunkte[i * WJ * WJ + k * WJ + j][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
+					stuetzpunkte[i * WJ * WJ + k * WJ + j][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
+					stuetzpunkte[i * WJ * WJ + k * WJ + j][2] = Strike * (0.01 + 2 * (double) (j) / (double) (WJ));
+				}
+	}
 
-    if (D > 3) {
-        printf("Error 4678");
-        exit(0);
-        //        for (int j = 0; j < J; ++j) {
-        //                double** X = DoubleFeld(N, D);
-        //            Pfadgenerieren(X);
-        //            for (int d = 0; d < D; ++d)
-        //                stuetzpunkte[j][d] = X[N / 2][d];
-    }
+	if (D > 3) {
+		printf("Error 4678");
+		exit(0);
+		//        for (int j = 0; j < J; ++j) {
+		//                double** X = DoubleFeld(N, D);
+		//            Pfadgenerieren(X);
+		//            for (int d = 0; d < D; ++d)
+		//                stuetzpunkte[j][d] = X[N / 2][d];
+	}
 }
 
 void AmericanOption::lp_ausgeben() {
-    if (verbose) {
-        printf("Matrix ausgeben\n");
-        for (int j = 0; j < J; ++j) {
-            for (int m = 0; m < Mphi; ++m)
-                printf("%.3lf, ", Matrix[j][m]);
-            printf("\n");
-        }
-        printf("RS ausgeben\n");
-        for (int j = 0; j < J; ++j)
-            printf("%.3lf, ", RS[j]);
-        printf("\n");
-        printf("Funktional Koeff. ausgeben\n");
-        for (int j = 0; j < Mphi; ++j)
-            printf("%.3lf, ", C[j]);
-        printf("\n");
-    }
+	if (verbose) {
+		printf("Matrix ausgeben\n");
+		for (int j = 0; j < J; ++j) {
+			for (int m = 0; m < Mphi; ++m)
+				printf("%.3lf, ", Matrix[j][m]);
+			printf("\n");
+		}
+		printf("RS ausgeben\n");
+		for (int j = 0; j < J; ++j)
+			printf("%.3lf, ", RS[j]);
+		printf("\n");
+		printf("Funktional Koeff. ausgeben\n");
+		for (int j = 0; j < Mphi; ++j)
+			printf("%.3lf, ", C[j]);
+		printf("\n");
+	}
 }
 
 double * semi_ergebnisse;
@@ -312,53 +283,45 @@ void* DELEGATE_semi_test(void* data) {
 }
 
 void AmericanOption::semi_test(int threadnummer) {
-    semi_ergebnisse[threadnummer] = 0;
-    
-    double** x = DoubleFeld(N, D);
-    double** wdiff = DoubleFeld(N, D);
-    double** sprue = DoubleFeld(N, D);
+	semi_ergebnisse[threadnummer] = 0;
 
-    int seed = time(NULL) + threadnummer + getpid();
-    srand(seed);
+	double** x = DoubleFeld(N, D);
 
-    int durchlaeufe = (int)(double)(semi_testingpaths) / (double)(Threadanzahl);
-    for (int m = 0; m < durchlaeufe; ++m) {
-        for (int n = 0; n < N; ++n)
-            for (int j = 0; j < D; ++j) {
-                if (m % 2 == 0)wdiff[n][j] = sqrt(dt) *
-                        BoxMuller((double)(rand())/(double)(RAND_MAX),(double)(rand())/(double)(RAND_MAX));
-                else wdiff[n][j] = -wdiff[n][j]; //antithetics
-                sprue[n][j] = 0;
-            }
-        Pfadgenerieren(x, wdiff);
-        double sum = 0;
-        for (int n = 0; n < N; ++n)
-            sum += semi_f(n, x[n]);
-        semi_ergebnisse[threadnummer]+=sum/(double)(durchlaeufe);
-       
-    }
+	int seed = time(NULL) + threadnummer + getpid();
+	srand(seed);
+
+	int durchlaeufe = (int)(double)(semi_testingpaths) / (double)(Threadanzahl);
+	RNG generator;
+	for (int m = 0; m < durchlaeufe; ++m) {
+		Pfadgenerieren(x, 0,X0,&generator);
+		double sum = 0;
+		for (int n = 0; n < N; ++n)
+			sum += semi_f(n, x[n]);
+		semi_ergebnisse[threadnummer]+=sum/(double)(durchlaeufe);
+
+	}
 }
 
 void AmericanOption::semi_testing() {
-    printf("Testing\n");
+	printf("Testing\n");
 
-    semi_ergebnisse=DoubleFeld(Threadanzahl);
-   
-    pthread_t threads[Threadanzahl];
-            for (int j = 0; j < Threadanzahl; j++)
-                pthread_create(&threads[j], NULL, DELEGATE_semi_test, array_machen(j));
-            for (int j = 0; j < Threadanzahl; j++)
-                pthread_join(threads[j], NULL);
+	semi_ergebnisse=DoubleFeld(Threadanzahl);
 
-    double erg=0;
-    for(int threadnummer=0;threadnummer<Threadanzahl;++threadnummer)
-        erg+=semi_ergebnisse[threadnummer]/(double)Threadanzahl;
+	pthread_t threads[Threadanzahl];
+	for (int j = 0; j < Threadanzahl; j++)
+		pthread_create(&threads[j], NULL, DELEGATE_semi_test, array_machen(j));
+	for (int j = 0; j < Threadanzahl; j++)
+		pthread_join(threads[j], NULL);
 
-    printf("%f\n", erg);
-    ErgebnisAnhaengen(erg);
-      
-    //---------------
-    /*
+	double erg=0;
+	for(int threadnummer=0;threadnummer<Threadanzahl;++threadnummer)
+		erg+=semi_ergebnisse[threadnummer]/(double)Threadanzahl;
+
+	printf("%f\n", erg);
+	ErgebnisAnhaengen(erg);
+
+	//---------------
+	/*
     for (int testlauf = 0; testlauf < 10; ++testlauf) {
         int ergebnispipe[Threadanzahl][2];
         for (int z = 0; z < Threadanzahl; ++z)
@@ -425,9 +388,9 @@ void AmericanOption::semi_testing() {
     double erg = 0;
     for (int i = 0; i < 10; ++i)
         erg += testergs[i]*0.1;*/
-//
-////    printf("\n\nGesamtergebnis: %f\n", erg);
-//    ErgebnisAnhaengen(erg);
+	//
+	////    printf("\n\nGesamtergebnis: %f\n", erg);
+	//    ErgebnisAnhaengen(erg);
 }
 
 //void AmericanOption::stuetzerwartungen_ausrechnen(){
@@ -499,166 +462,166 @@ void AmericanOption::stuetzpunkte_ausgeben()
 }
 
 double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
-        for (int m = 0; m < Mphi; ++m)
-                for (int j = 0; j < J; ++j)
-                    Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
+	for (int m = 0; m < Mphi; ++m)
+		for (int j = 0; j < J; ++j)
+			Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
 
-            for (int m = 0; m < Mphi; ++m) {
-                C[m] = 0;
-                for (int j = 0; j < J; ++j)
-                    C[m] += semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
-            }
+	for (int m = 0; m < Mphi; ++m) {
+		C[m] = 0;
+		for (int j = 0; j < J; ++j)
+			C[m] += semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
+	}
 
 
 
-        if(index==NULL){
-        indexlaenge=Mphi;
-        index=new int[Mphi];
-        for(int m=0;m<Mphi;++m)
-            index[m]=m;
-    }
+	if(index==NULL){
+		indexlaenge=Mphi;
+		index=new int[Mphi];
+		for(int m=0;m<Mphi;++m)
+			index[m]=m;
+	}
 
-    if (!verbose)glp_term_out(GLP_OFF);
-    glp_prob *lp;
+	if (!verbose)glp_term_out(GLP_OFF);
+	glp_prob *lp;
 
-    lp = glp_create_prob();
-    glp_set_obj_dir(lp, GLP_MAX);
+	lp = glp_create_prob();
+	glp_set_obj_dir(lp, GLP_MAX);
 
-    glp_add_rows(lp, J);
+	glp_add_rows(lp, J);
 
-    for (int j = 0; j < J; ++j)
-        glp_set_row_bnds(lp, j + 1, GLP_UP, 0.0, RS[j]);
+	for (int j = 0; j < J; ++j)
+		glp_set_row_bnds(lp, j + 1, GLP_UP, 0.0, RS[j]);
 
-    //Zielfunktional uebergeben
-    glp_add_cols(lp, indexlaenge);
-    for (int m = 0; m < indexlaenge; ++m) {
-        glp_set_col_bnds(lp, m + 1, GLP_FR, 0.0, 0.0);
-        glp_set_obj_coef(lp, m + 1, C[index[m]]);
-    }
+	//Zielfunktional uebergeben
+	glp_add_cols(lp, indexlaenge);
+	for (int m = 0; m < indexlaenge; ++m) {
+		glp_set_col_bnds(lp, m + 1, GLP_FR, 0.0, 0.0);
+		glp_set_obj_coef(lp, m + 1, C[index[m]]);
+	}
 
-    //Matrixeintraege uebergeben
-    int ia[1 + J * indexlaenge], ja[1 + J * indexlaenge];
-    double ar[1 + J * indexlaenge];
-    int zaehler = 1;
-    for (int i = 0; i < J; ++i)
-        for (int j = 0; j < indexlaenge; j++) {
-            ia[zaehler] = i + 1;
-            ja[zaehler] = j + 1;
-            ar[zaehler] = Matrix[i][index[j]];
-            zaehler++;
-        }
+	//Matrixeintraege uebergeben
+	int ia[1 + J * indexlaenge], ja[1 + J * indexlaenge];
+	double ar[1 + J * indexlaenge];
+	int zaehler = 1;
+	for (int i = 0; i < J; ++i)
+		for (int j = 0; j < indexlaenge; j++) {
+			ia[zaehler] = i + 1;
+			ja[zaehler] = j + 1;
+			ar[zaehler] = Matrix[i][index[j]];
+			zaehler++;
+		}
 
-    glp_load_matrix(lp, indexlaenge*J, ia, ja, ar);
-    glp_simplex(lp, NULL);
+	glp_load_matrix(lp, indexlaenge*J, ia, ja, ar);
+	glp_simplex(lp, NULL);
 
-    //Loesung auslesen
-    double* x = DoubleFeld(indexlaenge);
-    for (int m = 0; m < indexlaenge; ++m)x[m] = glp_get_col_prim(lp, m + 1);
+	//Loesung auslesen
+	double* x = DoubleFeld(indexlaenge);
+	for (int m = 0; m < indexlaenge; ++m)x[m] = glp_get_col_prim(lp, m + 1);
 
-    glp_delete_prob(lp);
-    return x;
+	glp_delete_prob(lp);
+	return x;
 }
 
 void AmericanOption::semi_ergebnisse_ausgeben(){
-    printf("semi_betas ausgeben \n");
-    for (int j = 0; j < Mphi; ++j)
-        printf("%.4lf, ", semi_betas[nactual][j]);
-    printf("\n");
-//    printf("C_upperbound ausgeben \n");
-//    for (int j = 0; j < J; ++j)
-//        printf("%.3lf, ", linearCombinationOfBasis(nactual, stuetzpunkte[j], 0));
-//    printf("\n");
-//    printf("f_estimated ausgeben \n");
-//    for (int j = 0; j < J; ++j) {
-//        printf("%.3lf, ", semi_f(nactual, stuetzpunkte[j]));
-//    }
-//    printf("\n");
+	printf("semi_betas ausgeben \n");
+	for (int j = 0; j < Mphi; ++j)
+		printf("%.4lf, ", semi_betas[nactual][j]);
+	printf("\n");
+	//    printf("C_upperbound ausgeben \n");
+	//    for (int j = 0; j < J; ++j)
+	//        printf("%.3lf, ", linearCombinationOfBasis(nactual, stuetzpunkte[j], 0));
+	//    printf("\n");
+	//    printf("f_estimated ausgeben \n");
+	//    for (int j = 0; j < J; ++j) {
+	//        printf("%.3lf, ", semi_f(nactual, stuetzpunkte[j]));
+	//    }
+	//    printf("\n");
 
-    double start = stuetzpunkte[0][0];
-    double stop = stuetzpunkte[J - 1][0];
-    {
-        fstream f;
-        f.open("func.data", ios::out);
-        for (double t = start; t <= stop; t += 0.01) {
-            double point[2];
-            point[0] = t;
-            f << linearCombinationOfBasis(nactual, point, 0) << endl;
-        }
-        f.close();
-    }
+	double start = stuetzpunkte[0][0];
+	double stop = stuetzpunkte[J - 1][0];
+	{
+		fstream f;
+		f.open("func.data", ios::out);
+		for (double t = start; t <= stop; t += 0.01) {
+			double point[2];
+			point[0] = t;
+			f << linearCombinationOfBasis(nactual, point, 0) << endl;
+		}
+		f.close();
+	}
 
-    int WJ = (int) (sqrt(J));
-    fstream file_diff;
-    fstream file_stue;
-    fstream file_linComb;
-    fstream file_Q;
-    fstream file_payoff;
-    fstream file_europ;
-    fstream file_europnah;
-    fstream file_LSM_C_estimated;
-    file_payoff.open("file_payoff.data", ios::out);
-    file_Q.open("file_Q.data", ios::out);
-    file_diff.open("file_diff.data", ios::out);
-    file_linComb.open("file_linComb.data", ios::out);
-    file_stue.open("file_stue.data", ios::out);
-    file_europ.open("file_europ.data", ios::out);
-    file_europnah.open("file_europnah.data", ios::out);
-    file_LSM_C_estimated.open("file_LSM_C_estimated.data", ios::out);
+	int WJ = (int) (sqrt(J));
+	fstream file_diff;
+	fstream file_stue;
+	fstream file_linComb;
+	fstream file_Q;
+	fstream file_payoff;
+	fstream file_europ;
+	fstream file_europnah;
+	fstream file_LSM_C_estimated;
+	file_payoff.open("file_payoff.data", ios::out);
+	file_Q.open("file_Q.data", ios::out);
+	file_diff.open("file_diff.data", ios::out);
+	file_linComb.open("file_linComb.data", ios::out);
+	file_stue.open("file_stue.data", ios::out);
+	file_europ.open("file_europ.data", ios::out);
+	file_europnah.open("file_europnah.data", ios::out);
+	file_LSM_C_estimated.open("file_LSM_C_estimated.data", ios::out);
 
-    double array_payoff[J];
-    double array_Q[J];
-    double array_diff[J];
-    double array_linComb[J];
-    double array_stue[J];
-    double array_europ[J];
-    double array_europnah[J];
-    //double array_LSM_C_estimated[J];
+	double array_payoff[J];
+	double array_Q[J];
+	double array_diff[J];
+	double array_linComb[J];
+	double array_stue[J];
+	double array_europ[J];
+	double array_europnah[J];
+	//double array_LSM_C_estimated[J];
 
-     for (int j = 0; j < J; j++) {
-        array_Q[j]= max(payoff(stuetzpunkte[j], nactual) - linearCombinationOfBasis(nactual, stuetzpunkte[j], 0), 0) + stuetzerwartung[j];
-        array_payoff[j] =payoff(stuetzpunkte[j], nactual);
-        array_diff[j] =linearCombinationOfBasis(nactual, stuetzpunkte[j], 0) - stuetzerwartung[j] ;
-        array_stue[j] =stuetzerwartung[j];
-        array_linComb[j] = linearCombinationOfBasis(nactual, stuetzpunkte[j], 0);
-       // array_europ[j] = europeanValue(stuetzpunkte[j], nactual*dt, T) ;
-       // array_europnah[j] = europeanValue(stuetzpunkte[j], nactual*dt, nactual * dt + dt) ;
-   //     if ((Mphi == 6 && D == 1) || (Mphi == 7 && D == 2))
-    //        file_LSM_C_estimated << LSM_C_estimated(stuetzpunkte[j], nactual) << endl;
-    }
+	for (int j = 0; j < J; j++) {
+		array_Q[j]= max(payoff(stuetzpunkte[j], nactual) - linearCombinationOfBasis(nactual, stuetzpunkte[j], 0), 0) + stuetzerwartung[j];
+		array_payoff[j] =payoff(stuetzpunkte[j], nactual);
+		array_diff[j] =linearCombinationOfBasis(nactual, stuetzpunkte[j], 0) - stuetzerwartung[j] ;
+		array_stue[j] =stuetzerwartung[j];
+		array_linComb[j] = linearCombinationOfBasis(nactual, stuetzpunkte[j], 0);
+		// array_europ[j] = europeanValue(stuetzpunkte[j], nactual*dt, T) ;
+		// array_europnah[j] = europeanValue(stuetzpunkte[j], nactual*dt, nactual * dt + dt) ;
+		//     if ((Mphi == 6 && D == 1) || (Mphi == 7 && D == 2))
+		//        file_LSM_C_estimated << LSM_C_estimated(stuetzpunkte[j], nactual) << endl;
+	}
 
-    for (int j = 0; j < J; j++) {
-        if (D == 2 && j % WJ == 0) {
-            file_LSM_C_estimated << endl;
-            file_diff << endl;
-            file_linComb << endl;
-            file_Q << endl;
-            file_stue << endl;
-            file_europ << endl;
-            file_europnah << endl;
-            file_payoff << endl;
-        }
-        file_Q <<array_Q[j] << endl;
-        file_payoff <<array_payoff[j]<< endl;
-        file_diff << array_diff[j] << endl;
-        file_stue <<array_stue[j] << endl;
-        file_linComb << array_linComb[j]<< endl;
-        file_europ << array_europ[j]<< endl;
-        file_europnah << array_europnah[j]<< endl;
-   //     if ((Mphi == 6 && D == 1) || (Mphi == 7 && D == 2))
-    //        file_LSM_C_estimated << LSM_C_estimated(stuetzpunkte[j], nactual) << endl;
-    }
-    file_payoff.close();
-    file_diff.close();
-    file_Q.close();
-    file_stue.close();
-    file_linComb.close();
-    file_europ.close();
-    file_europnah.close();
-    file_LSM_C_estimated.close();
+	for (int j = 0; j < J; j++) {
+		if (D == 2 && j % WJ == 0) {
+			file_LSM_C_estimated << endl;
+			file_diff << endl;
+			file_linComb << endl;
+			file_Q << endl;
+			file_stue << endl;
+			file_europ << endl;
+			file_europnah << endl;
+			file_payoff << endl;
+		}
+		file_Q <<array_Q[j] << endl;
+		file_payoff <<array_payoff[j]<< endl;
+		file_diff << array_diff[j] << endl;
+		file_stue <<array_stue[j] << endl;
+		file_linComb << array_linComb[j]<< endl;
+		file_europ << array_europ[j]<< endl;
+		file_europnah << array_europnah[j]<< endl;
+		//     if ((Mphi == 6 && D == 1) || (Mphi == 7 && D == 2))
+		//        file_LSM_C_estimated << LSM_C_estimated(stuetzpunkte[j], nactual) << endl;
+	}
+	file_payoff.close();
+	file_diff.close();
+	file_Q.close();
+	file_stue.close();
+	file_linComb.close();
+	file_europ.close();
+	file_europnah.close();
+	file_LSM_C_estimated.close();
 }
 void AmericanOption::semi_mehrere_S0_testen() {
-  printf("Error 40");
-  /*
+	printf("Error 40");
+	/*
   //Europ schreiben
     {
         fstream f;
@@ -1007,15 +970,15 @@ void AmericanOption::semi_mehrere_S0_testen() {
 //}
 
 
- 
-        //		double** pts = faurepts(10, J+10, D, 5);
-        //		for(int n=0;n<100;++n){
-        //			for(int d=0;d<D;++d){
-        //				if(pts[n][d]>1.)printf("ERROR 112\n");
-        //				 printf("%f ",pts[n][d]);
-        //			}
-        //			printf("\n");
-        //		}
+
+//		double** pts = faurepts(10, J+10, D, 5);
+//		for(int n=0;n<100;++n){
+//			for(int d=0;d<D;++d){
+//				if(pts[n][d]>1.)printf("ERROR 112\n");
+//				 printf("%f ",pts[n][d]);
+//			}
+//			printf("\n");
+//		}
 
 //        if(j<30){
 //            double summe=0;
@@ -1051,10 +1014,52 @@ void AmericanOption::semi_mehrere_S0_testen() {
 //        j -= 10;
 
 
-				//if(argMax(stuetzpunkte[j],D)==d && payoff(stuetzpunkte[j],nactual)!=0)
-				//if(argMax(stuetzpunkte[j],D)==d)//if(payoff(stuetzpunkte[j],nactual)!=0)
-				//C[m]+=(1./0.1+payoff(stuetzpunkte[j],nactual))*semi_Basisfunktionen(n,m,stuetzpunkte[j]);
-				//if(argMax(stuetzpunkte[j],D)==d && payoff(stuetzpunkte[j],nactual)!=0)
-				//if(argMax(stuetzpunkte[m],D)==d)
-				//double gewicht=exp(-100.*fabs(payoff(stuetzpunkte[j],nactual)-stuetzerwartung[j]));
-				//if(D==1)gewicht=1.;
+//if(argMax(stuetzpunkte[j],D)==d && payoff(stuetzpunkte[j],nactual)!=0)
+//if(argMax(stuetzpunkte[j],D)==d)//if(payoff(stuetzpunkte[j],nactual)!=0)
+//C[m]+=(1./0.1+payoff(stuetzpunkte[j],nactual))*semi_Basisfunktionen(n,m,stuetzpunkte[j]);
+//if(argMax(stuetzpunkte[j],D)==d && payoff(stuetzpunkte[j],nactual)!=0)
+//if(argMax(stuetzpunkte[m],D)==d)
+//double gewicht=exp(-100.*fabs(payoff(stuetzpunkte[j],nactual)-stuetzerwartung[j]));
+//if(D==1)gewicht=1.;
+
+// int indexlaenge = 1000;
+//   time_t time3 = time(NULL);
+//semi_betas_Feld[i] = LP_mitGLPK_Loesen(NULL,0);
+//   time_t time4 = time(NULL);
+
+//            int* index = new int[indexlaenge];
+//            for (int m = 0; m < indexlaenge; ++m)
+//                index[m] = LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4 + m;
+//
+//            if (verbose) {
+//                printf("Fuer die erste optimierung:\n");
+//                for (int m = 0; m < indexlaenge; ++m)
+//                    printf("%d, ", index[m]);
+//                printf("\n");
+//            }
+//
+
+//
+//            time_t time3 = time(NULL);
+//            semi_betas_Feld[i] = LP_mitGLPK_Loesen(index, indexlaenge);
+//            time_t time4 = time(NULL);
+//            if (verbose)printf("Time for Optimization:%ld seconds\n", time4 - time3);
+//
+//            int indexlauf = 0;
+//            index = new int[Mphi];
+//            for (int m = 0; m < LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4; ++m) {
+//                index[indexlauf] = m;
+//                indexlauf++;
+//            }
+//            for (int m = 0; m < 1000; ++m)
+//                if (semi_betas_Feld[i][m] != 0) {
+//                    index[indexlauf] = m + LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4;
+//                    indexlauf++;
+//                }
+//            indexlaenge = indexlauf;
+//            if (verbose) {
+//                printf("Fuer die zweite optimierung:\n");
+//                for (int m = 0; m < indexlaenge; ++m)
+//                    printf("%d, ", index[m]);
+//                printf("\n");
+//            }

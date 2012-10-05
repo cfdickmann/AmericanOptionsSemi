@@ -16,22 +16,30 @@ void printInfo()
 	printf("4: ./AmericanOption -semi -verbose\n");
 }
 
-int main( int argc, char* args[]) {
-  int runden=1;
+void Test(){
+	double daten[5]={10,2,50,4,30};
+	int* index=BubbleSort(daten,5);
+	for(int i=0;i<5;++i)
+		printf("%d\n",index[i]);
+}
 
-    AmericanOption AMO;
-    //AMO.AndersenBroadieTest();
-    if (argc == 1) {
-        printInfo();
-        int auswahl = 6;
-        cin >> auswahl;
-        if (auswahl == 0)AMO.nesterov = AMO.speedup = AMO.verbose = true;
-        if (auswahl == 1)AMO.nesterov = AMO.speedup = AMO.parallelTest = true;
-        if (auswahl == 2)AMO.longstaffschwarz = true;
-        if (auswahl == 3)AMO.andersenbroadie = true;
-        if (auswahl == 4)AMO.semiinf = AMO.verbose = true;
-    }
-    bool wieder=false;
+int main( int argc, char* args[]) {
+	int runden=1;
+
+	//Test();
+	AmericanOption AMO;
+
+	if (argc == 1) {
+		printInfo();
+		int auswahl = 6;
+		cin >> auswahl;
+		if (auswahl == 0)AMO.nesterov = AMO.speedup = AMO.verbose = true;
+		if (auswahl == 1)AMO.nesterov = AMO.speedup = AMO.parallelTest = true;
+		if (auswahl == 2)AMO.longstaffschwarz = true;
+		if (auswahl == 3)AMO.andersenbroadie = true;
+		if (auswahl == 4)AMO.semiinf = AMO.verbose = true;
+	}
+	bool wieder=false;
 	for(int i=0;i<argc;++i)
 	{
 		string arg=args[i];
@@ -54,24 +62,24 @@ int main( int argc, char* args[]) {
 		if(! arg.compare("-speedup"))               {geaendert=true;AMO.speedup=true;}
 		if(! arg.compare("-BFGS"))                  {geaendert=true;AMO.bfgs=true;}
 		if((! arg.compare("-LongstaffSchwartz"))
-                        || (! arg.compare("-LSM")))         {geaendert=true;AMO.longstaffschwarz=true;}
+				|| (! arg.compare("-LSM")))         {geaendert=true;AMO.longstaffschwarz=true;}
 		if(! arg.compare("-AndersenBroadie"))       {geaendert=true;AMO.andersenbroadie=true;}
 		if(! arg.compare("-antithetics"))           {geaendert=true;AMO.antithetics=true;}
 		if(! arg.compare("-semi"))                  {geaendert=true;AMO.semiinf=true;}
 		if(i>0 && !geaendert){printf("Unverständliche Parameter!\n");return 0;}
-    }
-    if (wieder) {
-        printf("Anzahl der Wiederholungen\n");
-        cin >> runden;
-    }
-    for(int i=0;i<runden;++i){
-    if (AMO.longstaffschwarz)AMO.LongstaffSchwartz();
-    if (AMO.andersenbroadie)AMO.AndersenBroadie();
-    if (AMO.bfgs)AMO.BFGS();
-    if (AMO.nesterov)AMO.Nesterov();
-    if (AMO.testing)AMO.BFGS_testing(50000.);
-    if (AMO.parallelTest)AMO.BFGS_parallelTesting(50000.);
-    if (AMO.extremTest)AMO.BFGS_extremeTesting(25, 50000.);
-    if (AMO.semiinf)AMO.semi();
-    }
+	}
+	if (wieder) {
+		printf("Anzahl der Wiederholungen\n");
+		cin >> runden;
+	}
+	for(int i=0;i<runden;++i){
+		if (AMO.longstaffschwarz)AMO.LongstaffSchwartz();
+		if (AMO.andersenbroadie)AMO.AndersenBroadie();
+		if (AMO.bfgs)AMO.BFGS();
+		if (AMO.nesterov)AMO.Nesterov();
+		if (AMO.testing)AMO.BFGS_testing(50000.);
+		if (AMO.parallelTest)AMO.BFGS_parallelTesting(50000.);
+		if (AMO.extremTest)AMO.BFGS_extremeTesting(25, 50000.);
+		if (AMO.semiinf)AMO.semi();
+	}
 }

@@ -22,6 +22,7 @@ double** MatrixMultiplizieren(double**  a,double**  b,int D);
 double betrag(double x);
 
 void BubbleSort(double* werte, int* index, int l);
+int* BubbleSort(double* werte, int l);
 
 int* array_machen(int z);
 //int hargMax(double* v, int l, int ll);

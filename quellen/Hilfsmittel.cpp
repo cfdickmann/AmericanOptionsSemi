@@ -123,6 +123,15 @@ void ErgebnisAnhaengen(double d, char* filename)
 		File << d << endl;
 }
 
+int* BubbleSort(double* werte, int l)
+{
+	int* index=IntFeld(l);
+	for(int i=0;i<l;++i)
+		index[i]=i;
+	BubbleSort(werte,index,l);
+	return index;
+}
+
 void BubbleSort(double* werte, int* index, int l)
 {
 	bool geaendert=true;
@@ -465,7 +474,6 @@ double* LGSloesen(double** AA, double* bb, int Mphi){
 
 	/*
 
-	//************************
 	    real_1d_array bb;
 	real_2d_array AA;
 	AA.setlength(Mphi,Mphi);

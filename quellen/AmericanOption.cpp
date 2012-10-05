@@ -115,14 +115,14 @@ void AmericanOption::Pfadgenerieren(double** X, double** wdiff) {
 	Pfadgenerieren(X, wdiff, 0, X0);
 }
 
-void AmericanOption::Pfadgenerieren(double** X,  int start,double* S, RNG* generator) {
+void AmericanOption::Pfadgenerieren(double** X,  int start, double* S, RNG* generator) {
 	double** wdiff =DoubleFeld(N,D);
 	for(int n=0;n<N;++n)
 		for(int d=0;d<D;++d)
-			wdiff[n][d]=sqrt(dt)*generator->nextGaussian();
-	Pfadgenerieren(X, wdiff, 0, X0);
+		   wdiff[n][d]=sqrt(dt)*generator->nextGaussian();
+	Pfadgenerieren(X, wdiff, 0, S);
+	deleteDoubleFeld(wdiff,N,D);
 }
-
 
 void AmericanOption::Pfadgenerieren(double** X, double** wdiff, int start, double * S) {
 	for (int j = 0; j < D; ++j)

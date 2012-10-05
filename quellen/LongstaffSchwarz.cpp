@@ -17,7 +17,7 @@ void* DELEGATE_LSM_mittelwert(void* data) {
 
 void AmericanOption::LongstaffSchwartz() { //TODO
 	LSM_Mtraining=100000;
-	LSM_Mtesting =1000000;
+	LSM_Mtesting =100000;
 
 	LSM_setting();
 
@@ -31,9 +31,9 @@ void AmericanOption::LongstaffSchwartz() { //TODO
 	MT.seed(time(NULL)+getpid());
 	srand(time(NULL));
 	if(verbose)printf("Pfade erstellen\n");
-	for (int m = 0; m < M; ++m){
-		Pfadgenerieren(X[m]);
-	}
+	RNG generator;
+	for (int m = 0; m < M; ++m)
+		Pfadgenerieren(X[m],0,X0,&generator);
 
 	//ii
 	for(int m=0;m<M;++m)  // letzter zeitschritt
@@ -105,7 +105,7 @@ void AmericanOption::LongstaffSchwartz() { //TODO
 	f.close();
 	printf("(Koeff der C_i in LSMkoeff.dat gespeichert)\n");
 
-	//DL.ErgebnisAnhaengen(h); // high biased ergebnis ausgeben
+	ErgebnisAnhaengen(h,(char*)"LSM_high.txt"); // high biased ergebnis ausgeben
 
 	//Low-Estimation
 	{int ergebnispipe[Threadanzahl][2];
@@ -125,10 +125,10 @@ void AmericanOption::LongstaffSchwartz() { //TODO
 			double** wdiff=DoubleFeld(N,D);
 			int durchlaeufe=LSM_Mtesting/Threadanzahl; //10000000/Threadanzahl
 			for (int k = 0; k < durchlaeufe; ++k){
+				RNG generator;
 				for(int n=0;n<N;++n)
-					for(int j=0;j<D;++j){
-						wdiff[n][j]=sqrt(dt)*nextGaussian();
-					}
+					for(int j=0;j<D;++j)
+						wdiff[n][j]=sqrt(dt)*generator.nextGaussian();
 				Pfadgenerieren(X,wdiff);
 				double erg=payoff(X[N - 1],N - 1 );
 				for (int lau = 1; lau<N-1; ++lau)
@@ -147,7 +147,7 @@ void AmericanOption::LongstaffSchwartz() { //TODO
 		erg+=AusPipeLesen(ergebnispipe[f])/(double)(Threadanzahl);
 
 	printf("low bound: %f\n\n",erg);
-	ErgebnisAnhaengen(erg);
+	ErgebnisAnhaengen(erg,(char*)"LSM_low.txt");
 	}
 }
 

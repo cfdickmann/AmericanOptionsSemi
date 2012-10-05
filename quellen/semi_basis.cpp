@@ -181,14 +181,12 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		j -= 200;
 
 
-		if (j < 200) {
-			int reihe[D];
-			for(int jj=0;jj<D;++jj)
-				reihe[jj]=jj;
-			BubbleSort(x,reihe,D);
+		if (j < 1200) {
+			int* reihe=IntFeld(5);
+			reihe=BubbleSort(x,D);
 			return pow(x[reihe[0]]-x[reihe[1]],(double)j/200.);
 		}
-		j -= 200;
+		j -= 1200;
 
 	}
 
