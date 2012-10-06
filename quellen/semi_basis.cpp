@@ -131,52 +131,50 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		//            return europeanValue(x,zeit*dt,zeit*dt+dt);
 		//        }
 
-		if (j < 200) {
+		if (j < 500) {
 			double xx[D];
 			for (int d = 0; d < D; ++d)
-				xx[d] = (double) j / 200. * 4. * x[d];
+				xx[d] = (double) j / 500. * 4. * x[d];
 			return payoff(xx, zeit);
 		}
-		j -= 200;
+		j -= 500;
 
-		if (j < 400) {
+		if (j < 500) {
 			double summe = 0;
 			for (int d = 0; d < D; ++d)
 				summe += x[d];
-			return max(summe - (double) (j) / 400. * 8. * (double) D * X0[0], 0);
+			return max(summe - (double) (j) / 500. * 8. * (double) D * X0[0], 0);
 		}
-		j -= 400;
+		j -= 500;
 
-		if (j < 200) {
+		if (j < 500) {
 			double summe = 0;
 			for (int d = 0; d < D; ++d)
 				if(d!=j%3)
 					summe += x[d];
-			return max(summe - (double) (j) / 200. * 6. * (double) D * X0[0], 0);
+			return max(summe - (double) (j) / 500. * 6. * (double) D * X0[0], 0);
 		}
-		j -= 200;
+		j -= 500;
 
-		if (j < 200) {
+		if (j < 500) {
 			//double summe = 0;
 			// for (int d = 0; d < D; ++d)
 				//    if(d!=j%3)
 					//   summe += x[d];
 			//return exp (x[0]/100.*(double) (j) / 200.) * exp (x[1]/100.*(double) (j) / 200.);
-			return   exp((x[0]/100.-0.5)*(double) (j) / 200.)
-					*exp((x[1]/100.-0.5)*(double) (j) / 200.)
-					*exp((x[2]/100.-0.5)*(double) (j) / 200.);
+			return   exp((x[0]/100.-0.5)*(double) (j) / 500.)
+					*exp((x[1]/100.-0.5)*(double) (j) / 500.)
+					*exp((x[2]/100.-0.5)*(double) (j) / 500.);
 
 		}
-		j -= 200;
+		j -= 500;
 
-
-		if (j < 1200) {
+		if (j < 500) {
 			int* reihe=IntFeld(5);
 			reihe=BubbleSort(x,D);
-			return pow(x[reihe[0]]-x[reihe[1]],(double)j/200.);
+			return pow(x[reihe[0]]-x[reihe[1]],(double)j/500.);
 		}
-		j -= 1200;
-
+		j -= 500;
 	}
 
 	printf("Error598");

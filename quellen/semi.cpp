@@ -62,10 +62,10 @@ void AmericanOption::semi() {
 	}
 
 	if (D == 3) {
-		Mphi += 1200;
+		Mphi += 2500;
 		J = 125; //216   125
-		M = 8000;   //5000
-		durchlaeufe = 8; //mehrmals pro zeitschritt optimieren 5
+		M = 5000;   //5000
+		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D > 3) {
@@ -117,11 +117,11 @@ void AmericanOption::semi() {
 
 			//LP aufstellen
 			Matrix = DoubleFeld(J, Mphi);
-			RS = DoubleFeld(J);
 			C = DoubleFeld(Mphi);
 			RS = stuetzerwartung;
-
 			semi_betas_Feld[i] = LP_mitGLPK_Loesen(0, J);
+			deleteDoubleFeld(Matrix,J,Mphi);
+			deleteDoubleFeld(C,Mphi);
 		}
 
 		//Durchschnitt als Ergebniss nehmen
@@ -142,8 +142,15 @@ void AmericanOption::semi() {
 
 		if (verbose)printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
 		if (verbose)semi_ergebnisse_ausgeben();
+
+deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
 	}
+
 	semi_testing();
+	deleteDoubleFeld(semi_betas,N, Mphi);
+	deleteIntFeld(semi_betas_index ,N, Mphi);
+	deleteIntFeld(semi_betas_index_max,N);
+	deleteDoubleFeld(stuetzerwartung ,J);
 	deleteDoubleFeld(semi_inner_paths,durchlaeufe,J,M,N,D);
 }
 
@@ -269,7 +276,6 @@ void AmericanOption::lp_ausgeben() {
 }
 
 double * semi_ergebnisse;
-double * semi_ergebnisse_quadratsummen;
 
 void* DELEGATE_semi_test(void* data) {
 	zeiger3->semi_testThread(((int*)data)[0]);
