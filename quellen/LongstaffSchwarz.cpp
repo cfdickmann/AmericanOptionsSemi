@@ -17,7 +17,7 @@ void* DELEGATE_LSM_mittelwert(void* data) {
 
 void AmericanOption::LongstaffSchwartz() { //TODO
 	LSM_Mtraining=100000;
-	LSM_Mtesting =100000;
+	LSM_Mtesting =1000000;
 
 	LSM_setting();
 
@@ -105,7 +105,7 @@ void AmericanOption::LongstaffSchwartz() { //TODO
 	f.close();
 	printf("(Koeff der C_i in LSMkoeff.dat gespeichert)\n");
 
-	ErgebnisAnhaengen(h,(char*)"LSM_high.txt"); // high biased ergebnis ausgeben
+	ErgebnisAnhaengen(h,(char*)"ergebnisse_LSM_high.txt"); // high biased ergebnis ausgeben
 
 	//Low-Estimation
 	{int ergebnispipe[Threadanzahl][2];
@@ -147,7 +147,7 @@ void AmericanOption::LongstaffSchwartz() { //TODO
 		erg+=AusPipeLesen(ergebnispipe[f])/(double)(Threadanzahl);
 
 	printf("low bound: %f\n\n",erg);
-	ErgebnisAnhaengen(erg,(char*)"LSM_low.txt");
+	ErgebnisAnhaengen(erg,(char*)"ergebnisse_LSM_low.txt");
 	}
 }
 

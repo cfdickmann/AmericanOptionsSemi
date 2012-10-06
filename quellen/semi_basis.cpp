@@ -73,17 +73,6 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			return sqrt(y[1] * y[1]);
 		j -= 5;
 
-		if (j == 0)
-			return exp(-y[0]);
-		if (j == 1)
-			return exp(-y[1]);
-		if (j == 2)
-			return exp(-y[0] + y[1]);
-		if (j == 3)
-			return exp(-y[0] + y[0]);
-		if (j == 4)
-			return exp(-y[1] + y[1]);
-		j -= 5;
 
 
 		//            if (j == 0)
@@ -142,13 +131,13 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		//            return europeanValue(x,zeit*dt,zeit*dt+dt);
 		//        }
 
-		if (j < 400) {
+		if (j < 200) {
 			double xx[D];
 			for (int d = 0; d < D; ++d)
-				xx[d] = (double) j / 400. * 4. * x[d];
+				xx[d] = (double) j / 200. * 4. * x[d];
 			return payoff(xx, zeit);
 		}
-		j -= 400;
+		j -= 200;
 
 		if (j < 400) {
 			double summe = 0;

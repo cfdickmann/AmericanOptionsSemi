@@ -113,7 +113,7 @@ namespace std {
         void neueExerciseDates(int n);
         double newSprung();
         double BoxMuller(double U1, double U2);
-        void stuetzerwartung_ausrechnen(int k);
+        void stuetzerwartung_ausrechnenThread(int k);
 
         double max(double d1, double d2);
         double nextGaussian();
@@ -203,7 +203,7 @@ namespace std {
     double*** AB_quadratsummen;
 
         //semi members
-
+int durchlaeufe;
         double ***** semi_inner_paths;
         double** semi_betas;
         int ** semi_betas_index;
@@ -212,12 +212,13 @@ namespace std {
 //        double* LP_mitALGLIB_Loesen();
         double* LP_mitGLPK_Loesen(int* index, int indexlaenge);
         void semi_testing();
-        void semi_test(int threadnummer);
+        void semi_testThread(int threadnummer);
         int semi_testingpaths;
         void semi_mehrere_S0_testen();
         void semi_ergebnisse_ausgeben();
         void stuetzpunkte_ausgeben();
-        double**** semi_inner_paths_erzeugen();
+        void semi_inner_paths_erzeugen();
+        void inner_paths_erzeugenThread(int threadnummer);
         int durchlaufactual;
         void stuetzerwartungen_ausrechnen();
         void stuetzpunkte_setzen();

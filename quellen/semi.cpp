@@ -18,38 +18,24 @@ using namespace std;
 AmericanOption* zeiger3;
 
 void* DELEGATE_stuetzerwartung_ausrechnen(void* data) {
-	zeiger3->stuetzerwartung_ausrechnen(((int*)data)[0]);
+	zeiger3->stuetzerwartung_ausrechnenThread(((int*)data)[0]);
 	pthread_exit(NULL);
 	return NULL;
 }
 
-double **** AmericanOption::semi_inner_paths_erzeugen(){
-	double**** erg = DoubleFeld(J, M, N, D);
+void* DELEGATE_inner_paths_erzeugen(void* data) {
+	zeiger3->inner_paths_erzeugenThread(((int*)data)[0]);
+	pthread_exit(NULL);
+	return NULL;
+}
 
+void AmericanOption::inner_paths_erzeugenThread(int threadnummer){
 	RNG generator;
-	for (int j = 0; j < J; ++j)
-		for (int m = 0; m < M; ++m)
-			Pfadgenerieren(erg[j][m], 0, stuetzpunkte[j],&generator);
-	return erg;
-
-	//	  //double**** erg = DoubleFeld(J, M, N, D);
-	//	    srand(getpid() + time(NULL));
-	//	    MT.seed(getpid() + time(NULL));
-	//	    for (int j = 0; j < J; ++j) {
-	//	        double** wdiff = DoubleFeld(N, D);
-	//	        double** sprue = DoubleFeld(N, D);
-	//	        for (int m = 0; m < M; ++m) {
-	//	            for (int n = 0; n < N; ++n)
-	//	                for (int j = 0; j < D; ++j) {
-	//	                    if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * BoxMuller((double) (random()) / (double) (RAND_MAX), (double) (random()) / (double) (RAND_MAX));
-	//	// if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * BoxMuller(MT(),MT());
-	//	                    else wdiff[n][j] = -wdiff[n][j]; //antithetics
-	//	                    sprue[n][j] = 0;
-	//	                }
-	//	            Pfadgenerieren(erg[j][m], wdiff, 0, stuetzpunkte[j]);
-	//	        }
-	//	    }
-	//	    return erg;
+	for(int u=0;u<durchlaeufe;++u)
+		for (int j = 0; j < J; ++j)
+			for (int m = 0; m < M; ++m)
+				if(m%Threadanzahl==threadnummer)
+					Pfadgenerieren(semi_inner_paths[u][j][m], 0, stuetzpunkte[j],&generator);
 }
 
 void AmericanOption::semi() {
@@ -57,26 +43,29 @@ void AmericanOption::semi() {
 	mlsm = true;
 	LSM_setting();
 
-	semi_testingpaths = 100000; //Wie viele Testingpaths
+	semi_testingpaths = 1000000; //Wie viele Testingpaths
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
-	int durchlaeufe = 2; //mehrmals pro zeitschritt optimieren 5
+
 
 	if (D == 1) {
 		Mphi = 1; //56
 		J = 80; //80
 		M = 10000;
+		durchlaeufe = 10; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D == 2) {
 		Mphi = 1712; //37   // Basisfunktionen
 		J = 121; //10*10;//49 // Stuetzpunkte
-		M = 500; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+		M = 10000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+		durchlaeufe = 10; //mehrmals pro zeitschritt optimieren 10
 	}
 
 	if (D == 3) {
 		Mphi += 1200;
 		J = 125; //216   125
-		M = 5000;   //5000
+		M = 8000;   //5000
+		durchlaeufe = 8; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D > 3) {
@@ -94,9 +83,14 @@ void AmericanOption::semi() {
 
 	if (verbose)printf("innere Pfade erzeugen\n");
 
-	semi_inner_paths = (double*****) malloc(sizeof (double****) *durchlaeufe);
-	for (int i = 0; i < durchlaeufe; ++i)
-		semi_inner_paths[i] = semi_inner_paths_erzeugen();
+	semi_inner_paths = DoubleFeld(durchlaeufe,J,M,N,D);
+
+	pthread_t threads[Threadanzahl];
+	for (int j = 0; j < Threadanzahl; j++)
+		pthread_create(&threads[j], NULL, DELEGATE_inner_paths_erzeugen, array_machen(j));
+	for (int j = 0; j < Threadanzahl; j++)
+		pthread_join(threads[j], NULL);
+
 	semi_betas = DoubleFeld(N, Mphi);
 	semi_betas_index = IntFeld(N, Mphi);
 	semi_betas_index_max = IntFeld(N);
@@ -150,6 +144,7 @@ void AmericanOption::semi() {
 		if (verbose)semi_ergebnisse_ausgeben();
 	}
 	semi_testing();
+	deleteDoubleFeld(semi_inner_paths,durchlaeufe,J,M,N,D);
 }
 
 double AmericanOption::linearCombinationOfBasis(int zeit, double* x, int d) {
@@ -199,7 +194,7 @@ double AmericanOption::semi_f(int zeit, double* x) {
 	 */
 }
 
-void AmericanOption::stuetzerwartung_ausrechnen(int k) {
+void AmericanOption::stuetzerwartung_ausrechnenThread(int k) {
 	for (int j = 0; j < J; ++j)
 		if (j % Threadanzahl == k) { // jeder Thread muss nur einige bearbeiten
 			stuetzerwartung[j] = 0;
@@ -277,12 +272,12 @@ double * semi_ergebnisse;
 double * semi_ergebnisse_quadratsummen;
 
 void* DELEGATE_semi_test(void* data) {
-	zeiger3->semi_test(((int*)data)[0]);
+	zeiger3->semi_testThread(((int*)data)[0]);
 	pthread_exit(NULL);
 	return NULL;
 }
 
-void AmericanOption::semi_test(int threadnummer) {
+void AmericanOption::semi_testThread(int threadnummer) {
 	semi_ergebnisse[threadnummer] = 0;
 
 	double** x = DoubleFeld(N, D);
@@ -318,7 +313,7 @@ void AmericanOption::semi_testing() {
 		erg+=semi_ergebnisse[threadnummer]/(double)Threadanzahl;
 
 	printf("%f\n", erg);
-	ErgebnisAnhaengen(erg);
+	ErgebnisAnhaengen(erg,(char*)"ergebnisse_semi.txt");
 
 	//---------------
 	/*
