@@ -122,13 +122,13 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		int reihe[D];
 		for(int jj=0;jj<D;++jj)
 			reihe[jj]=jj;
-		BubbleSort(x,reihe,D);
+		BubbleSort(y,reihe,D);
 
 		if(j<LSM_K0)return 1;
 		j-=LSM_K0;
 
 		if(j<LSM_K1)
-			return pow(x[reihe[0]],j+3);
+			return pow(y[reihe[0]],j+3);
 		j-=LSM_K1;
 
 		if(j< LSM_K2 )
@@ -136,19 +136,19 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			int a=j%D;
 			int b=(j-a)/D;
 			//if(verbose)printf("gemischt %d,%d\n",a,b);
-			return pow(x[reihe[a]],b+1);
+			return pow(y[reihe[a]],b+1);
 		}
 		j-=LSM_K2;
 
 		if(j<LSM_K3)
-			return x[reihe[j]]*x[reihe[j+1]];
+			return y[reihe[j]]*y[reihe[j+1]];
 		j-=LSM_K3;
 
 		if(j<LSM_K4)
 		{
 			double product=1;
 			for(int jj=0;jj<D;++jj)
-				product*=x[reihe[jj]];
+				product*=y[reihe[jj]];
 			return product;
 		}
 		j-=LSM_K4;
@@ -157,7 +157,7 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		if (j < 500) {
 			double xx[D];
 			for (int d = 0; d < D; ++d)
-				xx[d] = (double) j / 500. * 6. * x[d];
+				xx[d] = (double) j / 500. * 6. * y[d];
 			return payoff(xx, zeit);
 		}
 		j -= 500;
@@ -165,7 +165,7 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		if (j < 500) {
 			double summe = 0;
 			for (int d = 0; d < D; ++d)
-				summe += x[d];
+				summe += y[d];
 			return max(summe - (double) (j) / 500. * 8. * (double) D * X0[0], 0);
 		}
 		j -= 500;
@@ -174,7 +174,7 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			double summe = 0;
 			for (int d = 0; d < D; ++d)
 				if(d!=j%3)
-					summe += x[d];
+					summe += y[d];
 			return max(summe - (double) (j) / 500. * 6. * (double) D * X0[0], 0);
 		}
 		j -= 500;
