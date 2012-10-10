@@ -43,6 +43,9 @@ void AmericanOption::semi() {
 	mlsm = true;
 	LSM_setting();
 
+	printf("LSM_k: %d,%d,%d,%d,%d\n",LSM_K0,LSM_K1,LSM_K2,LSM_K3,LSM_K4);
+
+
 	semi_testingpaths = 1000000; //Wie viele Testingpaths
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
 
@@ -57,15 +60,15 @@ void AmericanOption::semi() {
 	if (D == 2) {
 		Mphi = 1712; //37   // Basisfunktionen
 		J = 121; //10*10;//49 // Stuetzpunkte
-		M = 10000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
-		durchlaeufe = 10; //mehrmals pro zeitschritt optimieren 10
+		M = 500; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+		durchlaeufe = 3; //mehrmals pro zeitschritt optimieren 10
 	}
 
 	if (D == 3) {
-		Mphi += 2500;
+		Mphi += 1500;
 		J = 125; //216   125
 		M = 5000;   //5000
-		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
+		durchlaeufe = 3; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D > 3) {

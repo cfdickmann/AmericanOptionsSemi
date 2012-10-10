@@ -23,8 +23,8 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 				return y[0] * y[0] * y[0];
 			if (j == 4)
 				return y[0] * y[0] * y[0] * y[0]; //Polynom 5. Grades bringt nur Probleme
-				if (j == 5)
-					return payoff(x, zeit);
+			if (j == 5)
+				return payoff(x, zeit);
 		}
 		j -= 6;
 
@@ -76,13 +76,13 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 
 
 		//            if (j == 0)
-			//                return pow(y[0]-y[1],1);
+		//                return pow(y[0]-y[1],1);
 		//            if (j == 1)
-			//                return pow(y[0]-y[1],2);
+		//                return pow(y[0]-y[1],2);
 		//            if (j == 2)
-			//                return pow(y[0]-y[1],3);
+		//                return pow(y[0]-y[1],3);
 		//            if (j == 3)
-			//                return pow(y[0]+y[1],1);
+		//                return pow(y[0]+y[1],1);
 		//            if (j == 4)
 		//                return pow(y[0]+y[1],2);
 		//            if (j == 5)
@@ -111,7 +111,6 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		}
 		j -= 1000;
 
-
 		//       for (int i = 0; i < 100; ++i) {
 		//            double p = (double) (i + 1) / 100. * 0.1;
 		//            if (j == i)return 1. / p * log(exp(p * x[0]) + exp(p * x[1]));
@@ -120,21 +119,45 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 	}
 
 	if (D > 2) {
-		if (j < LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4)return LSM_phi(x, j, zeit);
-		j -= LSM_K0 + LSM_K1 + LSM_K2 + LSM_K3 + LSM_K4;
+		int reihe[D];
+		for(int jj=0;jj<D;++jj)
+			reihe[jj]=jj;
+		BubbleSort(x,reihe,D);
 
-		//        if(j==0){
-		//            return europeanValue(x,zeit*dt,T);
-		//        }
-		//
-		//        if(j==1){
-		//            return europeanValue(x,zeit*dt,zeit*dt+dt);
-		//        }
+		if(j<LSM_K0)return 1;
+		j-=LSM_K0;
+
+		if(j<LSM_K1)
+			return pow(x[reihe[0]],j+3);
+		j-=LSM_K1;
+
+		if(j< LSM_K2 )
+		{
+			int a=j%D;
+			int b=(j-a)/D;
+			//if(verbose)printf("gemischt %d,%d\n",a,b);
+			return pow(x[reihe[a]],b+1);
+		}
+		j-=LSM_K2;
+
+		if(j<LSM_K3)
+			return x[reihe[j]]*x[reihe[j+1]];
+		j-=LSM_K3;
+
+		if(j<LSM_K4)
+		{
+			double product=1;
+			for(int jj=0;jj<D;++jj)
+				product*=x[reihe[jj]];
+			return product;
+		}
+		j-=LSM_K4;
+
 
 		if (j < 500) {
 			double xx[D];
 			for (int d = 0; d < D; ++d)
-				xx[d] = (double) j / 500. * 4. * x[d];
+				xx[d] = (double) j / 500. * 6. * x[d];
 			return payoff(xx, zeit);
 		}
 		j -= 500;
@@ -155,7 +178,7 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			return max(summe - (double) (j) / 500. * 6. * (double) D * X0[0], 0);
 		}
 		j -= 500;
-
+/*
 		if (j < 500) {
 			//double summe = 0;
 			// for (int d = 0; d < D; ++d)
@@ -163,18 +186,27 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 					//   summe += x[d];
 			//return exp (x[0]/100.*(double) (j) / 200.) * exp (x[1]/100.*(double) (j) / 200.);
 			return   exp((x[0]/100.-0.5)*(double) (j) / 500.)
-					*exp((x[1]/100.-0.5)*(double) (j) / 500.)
-					*exp((x[2]/100.-0.5)*(double) (j) / 500.);
+		 *exp((x[1]/100.-0.5)*(double) (j) / 500.)
+		 *exp((x[2]/100.-0.5)*(double) (j) / 500.);
 
 		}
-		j -= 500;
+		j -= 500;*/
 
-		if (j < 500) {
-			int* reihe=IntFeld(5);
-			reihe=BubbleSort(x,D);
-			return pow(x[reihe[0]]-x[reihe[1]],(double)j/500.);
-		}
-		j -= 500;
+//		if (j < 500) {
+//			int* reihe=IntFeld(5);
+//			reihe=BubbleSort(x,D);
+//			return sin(x[reihe[0]]-x[reihe[1]]*(double)j/500.);
+//		}
+//		j -= 500;
+//
+
+		//        if(j==0){
+		//            return europeanValue(x,zeit*dt,T);
+		//        }
+		//
+		//        if(j==1){
+		//            return europeanValue(x,zeit*dt,zeit*dt+dt);
+		//        }
 	}
 
 	printf("Error598");
