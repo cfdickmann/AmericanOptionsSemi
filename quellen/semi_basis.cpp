@@ -124,35 +124,82 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			reihe[jj]=jj;
 		BubbleSort(x,reihe,D);
 
-		if(j<LSM_K0)return 1;
-		j-=LSM_K0;
+		if(j<1)return 1;
+		j-=1;
 
-		if(j<LSM_K1)
+		if(j<3)
 			return pow(x[reihe[0]],j+3);
-		j-=LSM_K1;
+		j-=3;
 
-		if(j< LSM_K2 )
+		if(j< D*2 )
 		{
 			int a=j%D;
 			int b=(j-a)/D;
 			//if(verbose)printf("gemischt %d,%d\n",a,b);
 			return pow(x[reihe[a]],b+1);
 		}
-		j-=LSM_K2;
+		j-=D*2;
 
-		if(j<LSM_K3)
+		if(j<(D>2?D-1:0))
 			return x[reihe[j]]*x[reihe[j+1]];
-		j-=LSM_K3;
+		j-=D>2?D-1:0;
 
-		if(j<LSM_K4)
+		if(j<1)
 		{
 			double product=1;
 			for(int jj=0;jj<D;++jj)
 				product*=x[reihe[jj]];
 			return product;
 		}
-		j-=LSM_K4;
+		j-=1;
 
+		if(j<D)
+		{
+			return x[j]*x[j];
+		}
+		j-=D;
+
+		if(j<D)
+		{
+			return x[j];
+		}
+		j-=D;
+
+		if(j<D)
+		{
+			return y[j]*y[j];
+		}
+		j-=D;
+
+		if(j<D)
+		{
+			return y[j];
+		}
+		j-=D;
+
+		if(j<D)
+		{
+			return x[reihe[j]]*x[reihe[j]];
+		}
+		j-=D;
+
+		if(j<D)
+		{
+			return x[reihe[j]];
+		}
+		j-=D;
+
+		if(j<D)
+		{
+			return y[reihe[j]]*y[reihe[j]];
+		}
+		j-=D;
+
+		if(j<D)
+		{
+			return y[reihe[j]];
+		}
+		j-=D;
 
 		if (j < 500) {
 			double xx[D];
@@ -178,7 +225,7 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			return max(summe - (double) (j) / 500. * 6. * (double) D * X0[0], 0);
 		}
 		j -= 500;
-/*
+		/*
 		if (j < 500) {
 			//double summe = 0;
 			// for (int d = 0; d < D; ++d)
@@ -192,13 +239,13 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		}
 		j -= 500;*/
 
-//		if (j < 500) {
-//			int* reihe=IntFeld(5);
-//			reihe=BubbleSort(x,D);
-//			return sin(x[reihe[0]]-x[reihe[1]]*(double)j/500.);
-//		}
-//		j -= 500;
-//
+		//		if (j < 500) {
+		//			int* reihe=IntFeld(5);
+		//			reihe=BubbleSort(x,D);
+		//			return sin(x[reihe[0]]-x[reihe[1]]*(double)j/500.);
+		//		}
+		//		j -= 500;
+		//
 
 		//        if(j==0){
 		//            return europeanValue(x,zeit*dt,T);
