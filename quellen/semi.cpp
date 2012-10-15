@@ -74,6 +74,7 @@ void AmericanOption::semi() {
 	if (D > 3) {
 		printf("Error 45678\n");
 	}
+
 	printf("Dimensionen: %d\n",D);
 	printf("Basisfunktionen: %d \n",Mphi);
 	printf("Subsimulation: %d\n",M);
