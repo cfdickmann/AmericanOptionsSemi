@@ -128,21 +128,22 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		j-=1;
 
 		if(j<3)
-			return pow(x[reihe[0]],j+3);
+			//return min(pow(x[reihe[0]],j+3),10000000.0);
+		    return pow(x[reihe[0]],j+3);
 		j-=3;
 
 		if(j< D*2 )
 		{
 			int a=j%D;
 			int b=(j-a)/D;
-			//if(verbose)printf("gemischt %d,%d\n",a,b);
+			if(verbose)printf("%d:asset auf platz %d hoch %d\n",j,a,b);
 			return pow(x[reihe[a]],b+1);
 		}
 		j-=D*2;
 
 		if(j<(D>2?D-1:0))
 			return x[reihe[j]]*x[reihe[j+1]];
-		j-=D>2?D-1:0;
+		j-=(D>2?D-1:0);
 
 		if(j<1)
 		{
@@ -153,7 +154,7 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		}
 		j-=1;
 
-		if(j<D)
+		/*if(j<D)
 		{
 			return x[j]*x[j];
 		}
@@ -199,7 +200,7 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		{
 			return y[reihe[j]];
 		}
-		j-=D;
+		j-=D;*/
 
 		if (j < 500) {
 			double xx[D];
