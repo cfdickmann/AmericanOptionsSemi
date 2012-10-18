@@ -45,29 +45,27 @@ void AmericanOption::semi() {
 
 	printf("LSM_k: %d,%d,%d,%d,%d\n",LSM_K0,LSM_K1,LSM_K2,LSM_K3,LSM_K4);
 
-
 	semi_testingpaths = 1000000; //Wie viele Testingpaths
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
 
-
 	if (D == 1) {
-		Mphi = 1; //56
+		Mphi = 56; //56
 		J = 80; //80
-		M = 10000;
-		durchlaeufe = 10; //mehrmals pro zeitschritt optimieren 5
+		M = 5000;
+		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D == 2) {
 		Mphi = 1712; //37   // Basisfunktionen
-		J = 121; //10*10;//49 // Stuetzpunkte
-		M = 500; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
-		durchlaeufe = 3; //mehrmals pro zeitschritt optimieren 10
+		J = 100; //10*10;//49 // Stuetzpunkte
+		M = 10000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 10
 	}
 
 	if (D == 3) {
 		Mphi = 1+3+D*2+(D>2?D-1:0)+1+/*8*D*/+1500;
 		J = 125; //216   125
-		M = 50;   //5000
+		M = 5000;   //5000
 		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
 	}
 
@@ -115,6 +113,7 @@ void AmericanOption::semi() {
 				pthread_create(&threads[j], NULL, DELEGATE_stuetzerwartung_ausrechnen, array_machen(j));
 			for (int j = 0; j < Threadanzahl; j++)
 				pthread_join(threads[j], NULL);
+
 			if (verbose)stuetzpunkte_ausgeben();
 			time_t time2 = time(NULL);
 			if (verbose)printf("Time for Estimation time:%ld seconds\n", time2 - time1);
@@ -124,6 +123,7 @@ void AmericanOption::semi() {
 			C = DoubleFeld(Mphi);
 			RS = stuetzerwartung;
 			semi_betas_Feld[i] = LP_mitGLPK_Loesen(0, J);
+
 			deleteDoubleFeld(Matrix,J,Mphi);
 			deleteDoubleFeld(C,Mphi);
 		}
@@ -147,7 +147,7 @@ void AmericanOption::semi() {
 		if (verbose)printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
 		if (verbose)semi_ergebnisse_ausgeben();
 
-deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
+		deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
 	}
 
 	semi_testing();
@@ -476,8 +476,6 @@ double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
 		for (int j = 0; j < J; ++j)
 			C[m] += semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
 	}
-
-
 
 	if(index==NULL){
 		indexlaenge=Mphi;

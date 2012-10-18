@@ -73,8 +73,6 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			return sqrt(y[1] * y[1]);
 		j -= 5;
 
-
-
 		//            if (j == 0)
 		//                return pow(y[0]-y[1],1);
 		//            if (j == 1)
@@ -129,7 +127,7 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 
 		if(j<3)
 			//return min(pow(x[reihe[0]],j+3),10000000.0);
-		    return pow(x[reihe[0]],j+3);
+			return pow(x[reihe[0]],j+3);
 		j-=3;
 
 		if(j< D*2 )
@@ -144,6 +142,18 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		if(j<(D>2?D-1:0))
 			return x[reihe[j]]*x[reihe[j+1]];
 		j-=(D>2?D-1:0);
+
+		if(j<1)return x[0]*x[0]*x[2];
+		j-=1;
+
+		if(j<1)return x[0]*x[2]*x[2];
+		j-=1;
+
+		if(j<1)return x[2]*x[2]*x[1];
+		j-=1;
+
+		if(j<1)return x[2]*x[1]*x[1];
+		j-=1;
 
 		if(j<1)
 		{
