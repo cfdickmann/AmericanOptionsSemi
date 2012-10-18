@@ -64,7 +64,7 @@ void AmericanOption::semi() {
 
 	if (D == 3) {
 		Mphi = 1+3+D*2+(D>2?D-1:0)+1+/*8*D*/+1500;
-		J = 125; //216   125
+		J = 64; //216   125
 		M = 5000;   //5000
 		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
 	}
