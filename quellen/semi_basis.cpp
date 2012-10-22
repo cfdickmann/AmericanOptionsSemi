@@ -130,11 +130,11 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			return pow(x[reihe[0]],j+3);
 		j-=3;
 
-		if(j< D*2 )
+		if(j<D*2 )
 		{
 			int a=j%D;
 			int b=(j-a)/D;
-			if(verbose)printf("%d:asset auf platz %d hoch %d\n",j,a,b);
+			//if(verbose)printf("%d:asset auf platz %d hoch %d\n",j,a,b);
 			return pow(x[reihe[a]],b+1);
 		}
 		j-=D*2;
@@ -217,6 +217,12 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			for (int d = 0; d < D; ++d)
 				xx[d] = (double) j / 500. * 6. * x[d];
 			return payoff(xx, zeit);
+		}
+		j -= 500;
+
+		if (j < 500) {
+			double diff = x[0]-x[1];
+			return max(diff - (double) (j) / 500. * 8. * (double) D * X0[0], 0);
 		}
 		j -= 500;
 

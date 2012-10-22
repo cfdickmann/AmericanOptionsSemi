@@ -63,10 +63,10 @@ void AmericanOption::semi() {
 	}
 
 	if (D == 3) {
-		Mphi = 1+3+D*2+(D>2?D-1:0)+1+/*8*D*/+1500;
-		J = 64; //216   125
-		M = 5000;   //5000
-		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
+		Mphi = 1+3+D*2+(D>2?D-1:0)+1+/*8*D*/+2000;
+		J = (int)(pow(5,3)); //216   125
+		M = 8000;   //5000
+		durchlaeufe = 8; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D > 3) {
@@ -249,14 +249,14 @@ void AmericanOption::stuetzpunkte_setzen() {
 				}
 	}
 
-	if (D > 3) {
-		printf("Error 4678");
-		exit(0);
-		//        for (int j = 0; j < J; ++j) {
-		//                double** X = DoubleFeld(N, D);
-		//            Pfadgenerieren(X);
-		//            for (int d = 0; d < D; ++d)
-		//                stuetzpunkte[j][d] = X[N / 2][d];
+	if (D >= 3) {
+		printf("zufaellige Stuetzstellen troeeet\n");
+		for (int j = 0; j < J; ++j) {
+			double** X = DoubleFeld(N, D);
+			Pfadgenerieren(X);
+			for (int d = 0; d < D; ++d)
+				stuetzpunkte[j][d] = X[N / 2][d];
+		}
 	}
 }
 
