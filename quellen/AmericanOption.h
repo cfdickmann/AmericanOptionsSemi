@@ -236,7 +236,7 @@ int durchlaeufe;
         void semi();
         //	void Test();
         int nactual;
-        double linearCombinationOfBasis(int zeit, double* x, int d);
+        double linearCombinationOfBasis(int zeit, double* x);
         double semi_f(int n, double* x);
     };
 
