@@ -179,6 +179,6 @@ void AmericanOption::Daten(){
 		M=8000;
 	}
 
-        BFGS_Nesterov_Intervals=2;
-	Threadanzahl=10;
+        BFGS_Nesterov_Intervals=1;
+	Threadanzahl=14;
 }

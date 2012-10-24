@@ -45,35 +45,34 @@ void AmericanOption::semi() {
 
 	printf("LSM_k: %d,%d,%d,%d,%d\n",LSM_K0,LSM_K1,LSM_K2,LSM_K3,LSM_K4);
 
-
-	semi_testingpaths = 1000000; //Wie viele Testingpaths
+	semi_testingpaths = 100000; //Wie viele Testingpaths
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
 
-
 	if (D == 1) {
-		Mphi = 1; //56
+		Mphi = 56; //56
 		J = 80; //80
-		M = 10000;
-		durchlaeufe = 10; //mehrmals pro zeitschritt optimieren 5
+		M = 5000;
+		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D == 2) {
 		Mphi = 1712; //37   // Basisfunktionen
-		J = 121; //10*10;//49 // Stuetzpunkte
-		M = 500; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
-		durchlaeufe = 3; //mehrmals pro zeitschritt optimieren 10
+		J = 100; //10*10;//49 // Stuetzpunkte
+		M = 1000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 10
 	}
 
 	if (D == 3) {
-		Mphi += 1500;
-		J = 125; //216   125
-		M = 4000;   //5000
-		durchlaeufe = 3; //mehrmals pro zeitschritt optimieren 5
+		Mphi = 1+3+D*2+(D>2?D-1:0)+1+/*8*D*/+3500;
+		J = 100; //216   125
+		M = 1000;   //5000
+		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D > 3) {
 		printf("Error 45678\n");
 	}
+
 	printf("Dimensionen: %d\n",D);
 	printf("Basisfunktionen: %d \n",Mphi);
 	printf("Subsimulation: %d\n",M);
@@ -114,6 +113,7 @@ void AmericanOption::semi() {
 				pthread_create(&threads[j], NULL, DELEGATE_stuetzerwartung_ausrechnen, array_machen(j));
 			for (int j = 0; j < Threadanzahl; j++)
 				pthread_join(threads[j], NULL);
+
 			if (verbose)stuetzpunkte_ausgeben();
 			time_t time2 = time(NULL);
 			if (verbose)printf("Time for Estimation time:%ld seconds\n", time2 - time1);
@@ -123,6 +123,7 @@ void AmericanOption::semi() {
 			C = DoubleFeld(Mphi);
 			RS = stuetzerwartung;
 			semi_betas_Feld[i] = LP_mitGLPK_Loesen(0, J);
+
 			deleteDoubleFeld(Matrix,J,Mphi);
 			deleteDoubleFeld(C,Mphi);
 		}
@@ -143,10 +144,27 @@ void AmericanOption::semi() {
 
 		semi_betas_index_max[n] = indexlauf;
 
+		double* abstaende=DoubleFeld(J);
+
+		for(int j=0;j<J;++j)
+			abstaende[j]=stuetzerwartung[j]-linearCombinationOfBasis(nactual,stuetzpunkte[j]);
+		int* index=BubbleSort(abstaende,J);
+
+		for(int j=0;j<J;++j)
+		{
+			//			printf("p(");
+			//		for(int d=0;d<D;++d)
+			//			printf("%.3lf, ",stuetzpunkte[j][d]);
+			printf("abstaende %f\n",abstaende[j]);
+			//printf("abstaende %f\n",stuetzerwartung[j]-linearCombinationOfBasis(nactual,stuetzpunkte[j]));
+		}
+		deleteIntFeld(index,J);
+		deleteDoubleFeld(abstaende,J);
+
 		if (verbose)printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
 		if (verbose)semi_ergebnisse_ausgeben();
 
-deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
+		deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
 	}
 
 	semi_testing();
@@ -157,7 +175,7 @@ deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
 	deleteDoubleFeld(semi_inner_paths,durchlaeufe,J,M,N,D);
 }
 
-double AmericanOption::linearCombinationOfBasis(int zeit, double* x, int d) {
+double AmericanOption::linearCombinationOfBasis(int zeit, double* x) {
 	double sum = 0;
 	//    for (int m = 0; m < Mphi; ++m)
 	//        sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
@@ -182,9 +200,9 @@ double AmericanOption::semi_f(int zeit, double* x) {
 		return payoff(x, zeit);
 	//----------------------------
 	//	if(nactual==N-1)
-	int dmax = argMax(x, D);
-	dmax = 0;
-	return max(0, payoff(x, zeit) - linearCombinationOfBasis(zeit, x, dmax));
+	//int dmax = argMax(x, D);
+	//	dmax = 0;
+	return max(0, payoff(x, zeit) - linearCombinationOfBasis(zeit, x));
 
 	//return max(0, payoff(x,zeit) - linearCombinationOfBasis(zeit,x) );
 	/*
@@ -214,8 +232,16 @@ void AmericanOption::stuetzerwartung_ausrechnenThread(int k) {
 		}
 }
 
-void AmericanOption::stuetzpunkte_setzen() {
+double AmericanOption::euklidMetrik(double* s1, double* s2)
+{
+	double summe=0;
+	for(int d=0;d<D;++d)
+		summe+= pow(s1[d]-s2[d],2);
+	return sqrt(summe);
+}
 
+
+void AmericanOption::stuetzpunkte_setzen() {
 	if (D == 1) {
 		for (int i = 0; i < J; ++i)
 			if (option == MIN_PUT)
@@ -236,26 +262,65 @@ void AmericanOption::stuetzpunkte_setzen() {
 		//stuetzpunkte[30][1]=60;
 	}
 
-	if (D == 3) {
-		int WJ = (int) (ceil(pow(J, 1. / 3.)));
-		//            printf("sfd %d\n",WJ);exit(0);
-		for (int i = 0; i < WJ; ++i)
-			for (int k = 0; k < WJ; ++k)
-				for (int j = 0; j < WJ; ++j) {
-					stuetzpunkte[i * WJ * WJ + k * WJ + j][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
-					stuetzpunkte[i * WJ * WJ + k * WJ + j][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
-					stuetzpunkte[i * WJ * WJ + k * WJ + j][2] = Strike * (0.01 + 2 * (double) (j) / (double) (WJ));
-				}
-	}
+	//	if (D == 3) {
+	//		int WJ = (int) (ceil(pow(J, 1. / 3.)));
+	//		//            printf("sfd %d\n",WJ);exit(0);
+	//		for (int i = 0; i < WJ; ++i)
+	//			for (int k = 0; k < WJ; ++k)
+	//				for (int j = 0; j < WJ; ++j) {
+	//					stuetzpunkte[i * WJ * WJ + k * WJ + j][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
+	//					stuetzpunkte[i * WJ * WJ + k * WJ + j][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
+	//					stuetzpunkte[i * WJ * WJ + k * WJ + j][2] = Strike * (0.01 + 2 * (double) (j) / (double) (WJ));
+	//				}
+	//	}
 
-	if (D > 3) {
-		printf("Error 4678");
-		exit(0);
-		//        for (int j = 0; j < J; ++j) {
-		//                double** X = DoubleFeld(N, D);
-		//            Pfadgenerieren(X);
-		//            for (int d = 0; d < D; ++d)
-		//                stuetzpunkte[j][d] = X[N / 2][d];
+	if (D >= 3) {
+		printf("zufaellige Stuetzstellen\n");
+		RNG generator;
+		double** X = DoubleFeld(N, D);
+		for (int j = 0; j < J; ++j) {
+			Pfadgenerieren(X,0,X0,&generator);
+			for (int d = 0; d < D; ++d)
+				stuetzpunkte[j][d] = X[N / 2][d];
+		}
+		deleteDoubleFeld(X,N,D);
+
+		printf("Stuetzstellen richten\n");
+
+		for (int lauf = 0; lauf < 50; lauf++) {
+			//stuetzpunkte_abstandMessen();
+			int minindex=-1;
+			double min=100000000;
+			for(int j=0;j<J;++j)
+				for(int i=j+1;i<J;++i)
+				{
+					double abstand=euklidMetrik(stuetzpunkte[j],stuetzpunkte[i]);
+					if(abstand<min){
+						minindex=i;
+						min=abstand;
+					}
+				}
+			printf("neuer mindestabstand :%f \n",min);
+
+			//double neu=0;
+			//while(neu<min)
+			{
+				double** X = DoubleFeld(N, D);
+				Pfadgenerieren(X);
+				for (int d = 0; d < D; ++d)
+					stuetzpunkte[minindex][d] = X[N / 2][d];
+				//				double mini=100000000;
+				//				for(int j=0;j<J;++j)
+				//					if(minindex!=minindex)
+				//					{
+				//						double abstand=euklidMetrik(stuetzpunkte[j],stuetzpunkte[minindex]);
+				//						if(abstand<mini)
+				//							mini=abstand;
+				//					}
+				//				neu=min;
+				deleteDoubleFeld(X,N,D);
+			}
+		}
 	}
 }
 
@@ -476,8 +541,6 @@ double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
 			C[m] += semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
 	}
 
-
-
 	if(index==NULL){
 		indexlaenge=Mphi;
 		index=new int[Mphi];
@@ -521,7 +584,7 @@ double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
 	//Loesung auslesen
 	double* x = DoubleFeld(indexlaenge);
 	for (int m = 0; m < indexlaenge; ++m)x[m] = glp_get_col_prim(lp, m + 1);
-
+	//deleteDoubleFeld(x,indexlaenge);
 	glp_delete_prob(lp);
 	return x;
 }
@@ -549,7 +612,7 @@ void AmericanOption::semi_ergebnisse_ausgeben(){
 		for (double t = start; t <= stop; t += 0.01) {
 			double point[2];
 			point[0] = t;
-			f << linearCombinationOfBasis(nactual, point, 0) << endl;
+			f << linearCombinationOfBasis(nactual, point) << endl;
 		}
 		f.close();
 	}
@@ -582,11 +645,11 @@ void AmericanOption::semi_ergebnisse_ausgeben(){
 	//double array_LSM_C_estimated[J];
 
 	for (int j = 0; j < J; j++) {
-		array_Q[j]= max(payoff(stuetzpunkte[j], nactual) - linearCombinationOfBasis(nactual, stuetzpunkte[j], 0), 0) + stuetzerwartung[j];
+		array_Q[j]= max(payoff(stuetzpunkte[j], nactual) - linearCombinationOfBasis(nactual, stuetzpunkte[j]), 0) + stuetzerwartung[j];
 		array_payoff[j] =payoff(stuetzpunkte[j], nactual);
-		array_diff[j] =linearCombinationOfBasis(nactual, stuetzpunkte[j], 0) - stuetzerwartung[j] ;
+		array_diff[j] =linearCombinationOfBasis(nactual, stuetzpunkte[j]) - stuetzerwartung[j] ;
 		array_stue[j] =stuetzerwartung[j];
-		array_linComb[j] = linearCombinationOfBasis(nactual, stuetzpunkte[j], 0);
+		array_linComb[j] = linearCombinationOfBasis(nactual, stuetzpunkte[j]);
 		// array_europ[j] = europeanValue(stuetzpunkte[j], nactual*dt, T) ;
 		// array_europnah[j] = europeanValue(stuetzpunkte[j], nactual*dt, nactual * dt + dt) ;
 		//     if ((Mphi == 6 && D == 1) || (Mphi == 7 && D == 2))

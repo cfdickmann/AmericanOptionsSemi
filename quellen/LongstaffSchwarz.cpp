@@ -313,7 +313,7 @@ void AmericanOption::LSM_setting(){
 			LSM_K4=1;//Produkte aller assets
 		}else{
 			LSM_K0=1;//Konstante
-			LSM_K1=10;// 3,4,5 polynom des teuersten assets
+			LSM_K1=10;
 			LSM_K2=10;//Polynome zweiter ordnung in allen einzelnen assets
 			LSM_K3=0;
 			LSM_K4=0;//Produkte aller assets
