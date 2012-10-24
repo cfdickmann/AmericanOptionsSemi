@@ -115,6 +115,8 @@ namespace std {
         double BoxMuller(double U1, double U2);
         void stuetzerwartung_ausrechnenThread(int k);
 
+        double euklidMetrik(double* s1, double* s2);
+
         double max(double d1, double d2);
         double nextGaussian();
         int Poisson(double theta);

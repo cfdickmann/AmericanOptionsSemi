@@ -63,10 +63,10 @@ void AmericanOption::semi() {
 	}
 
 	if (D == 3) {
-		Mphi = 1+3+D*2+(D>2?D-1:0)+1+/*8*D*/+2000;
+		Mphi = 1+3+D*2+(D>2?D-1:0)+1+/*8*D*/+3500;
 		J = (int)(pow(5,3)); //216   125
-		M = 8000;   //5000
-		durchlaeufe = 8; //mehrmals pro zeitschritt optimieren 5
+		M = 10000;   //5000
+		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D > 3) {
@@ -123,6 +123,20 @@ void AmericanOption::semi() {
 			C = DoubleFeld(Mphi);
 			RS = stuetzerwartung;
 			semi_betas_Feld[i] = LP_mitGLPK_Loesen(0, J);
+
+			double* abstaende=DoubleFeld(J);
+			for(int j=0;j<J;++j)
+				abstaende[j]=stuetzerwartung[j]-linearCombinationOfBasis(nactual,stuetzpunkte[j],0);
+
+			int* index=BubbleSort(abstaende,J);
+
+			for(int j=0;j<J;++j)
+			{
+				printf("p(");
+				for(int d=0;d<D;++d)
+					printf("%.3lf, ",stuetzpunkte[index[j]][d]);
+				printf("abstaende %f\n",abstaende[index[j]]);
+			}
 
 			deleteDoubleFeld(Matrix,J,Mphi);
 			deleteDoubleFeld(C,Mphi);
@@ -215,8 +229,16 @@ void AmericanOption::stuetzerwartung_ausrechnenThread(int k) {
 		}
 }
 
-void AmericanOption::stuetzpunkte_setzen() {
+double AmericanOption::euklidMetrik(double* s1, double* s2)
+{
+	double summe=0;
+	for(int d=0;d<D;++d)
+		summe+= pow(s1[d]-s2[d],2);
+	return sqrt(summe);
+}
 
+
+void AmericanOption::stuetzpunkte_setzen() {
 	if (D == 1) {
 		for (int i = 0; i < J; ++i)
 			if (option == MIN_PUT)
@@ -250,12 +272,49 @@ void AmericanOption::stuetzpunkte_setzen() {
 	}
 
 	if (D >= 3) {
-		printf("zufaellige Stuetzstellen troeeet\n");
+		printf("zufaellige Stuetzstellen\n");
+		RNG generator;
+		double** X = DoubleFeld(N, D);
 		for (int j = 0; j < J; ++j) {
-			double** X = DoubleFeld(N, D);
-			Pfadgenerieren(X);
+			Pfadgenerieren(X,0,X0,&generator);
 			for (int d = 0; d < D; ++d)
 				stuetzpunkte[j][d] = X[N / 2][d];
+		}
+		//deleteDoubleFeld(X,N,D);
+
+		printf("Stuetzstellen richten\n");
+		for (int lauf = 0; lauf < 50; lauf++) {
+			//stuetzpunkte_abstandMessen();
+			int minindex=-1;
+			double min=100000000;
+			for(int j=0;j<J;++j)
+				for(int i=j+1;i<J;++i)
+				{
+					double abstand=euklidMetrik(stuetzpunkte[j],stuetzpunkte[i]);
+					if(abstand<min){
+						minindex=i;
+						min=abstand;
+					}
+				}
+			printf("abstand :%f \n",min);
+
+			double neu=0;
+			while(neu<min){
+				double** X = DoubleFeld(N, D);
+				Pfadgenerieren(X);
+				for (int d = 0; d < D; ++d)
+					stuetzpunkte[minindex][d] = X[N / 2][d];
+				deleteDoubleFeld(X,N,D);
+				double mini=100000000;
+				for(int j=0;j<J;++j)
+					if(minindex!=minindex)
+					{
+						double abstand=euklidMetrik(stuetzpunkte[j],stuetzpunkte[minindex]);
+						if(abstand<mini)
+							mini=abstand;
+					}
+				neu=min;
+			}
 		}
 	}
 }
@@ -520,7 +579,7 @@ double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
 	//Loesung auslesen
 	double* x = DoubleFeld(indexlaenge);
 	for (int m = 0; m < indexlaenge; ++m)x[m] = glp_get_col_prim(lp, m + 1);
-
+	//deleteDoubleFeld(x,indexlaenge);
 	glp_delete_prob(lp);
 	return x;
 }
