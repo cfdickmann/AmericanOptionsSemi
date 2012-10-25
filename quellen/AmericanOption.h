@@ -205,6 +205,10 @@ namespace std {
     double*** AB_quadratsummen;
 
         //semi members
+void    stuetzpunkte_ausrichten();
+//bool* PfadeNeuMachen;
+//void semi_betas_indexieren(int n);
+//int* stuetzpunkte_Punkte;
 int durchlaeufe;
         double ***** semi_inner_paths;
         double** semi_betas;

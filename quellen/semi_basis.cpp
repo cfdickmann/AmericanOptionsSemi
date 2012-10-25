@@ -118,207 +118,110 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 
 	if (D > 2) {
 		int reihe[D];
-				for(int jj=0;jj<D;++jj)
-					reihe[jj]=jj;
-				BubbleSort(x,reihe,D);
+		for(int jj=0;jj<D;++jj)
+			reihe[jj]=jj;
+		BubbleSort(x,reihe,D);
 
-				if(j<1)return 1;
-				j-=1;
+		if(j<1)return 1;
+		j-=1;
 
-				if(j<3)
-					//return min(pow(x[reihe[0]],j+3),10000000.0);
-					return pow(x[reihe[0]],j+3);
-				j-=3;
+		if(j<3)
+			return pow(x[reihe[0]],j+3);
+		j-=3;
 
-				if(j<D*2 )
-				{
-					int a=j%D;
-					int b=(j-a)/D;
-					//if(verbose)printf("%d:asset auf platz %d hoch %d\n",j,a,b);
-					return pow(x[reihe[a]],b+1);
-				}
-				j-=D*2;
+		if(j<D*2 )
+		{
+			int a=j%D;
+			int b=(j-a)/D;
+			//if(verbose)printf("%d:asset auf platz %d hoch %d\n",j,a,b);
+			return pow(x[reihe[a]],b+1);
+		}
+		j-=D*2;
 
-				if(j<(D>2?D-1:0))
-					return x[reihe[j]]*x[reihe[j+1]];
-				j-=(D>2?D-1:0);
+		if(j<(D>2?D-1:0))
+			return x[reihe[j]]*x[reihe[j+1]];
+		j-=(D>2?D-1:0);
 
-				if(j<1)return x[0]*x[0]*x[2];
-				j-=1;
+		if(j<1)return x[0]*x[0]*x[2];
+		j-=1;
 
-				if(j<1)return x[0]*x[2]*x[2];
-				j-=1;
+		if(j<1)return x[0]*x[2]*x[2];
+		j-=1;
 
-				if(j<1)return x[2]*x[2]*x[1];
-				j-=1;
+		if(j<1)return x[2]*x[2]*x[1];
+		j-=1;
 
-				if(j<1)return x[2]*x[1]*x[1];
-				j-=1;
+		if(j<1)return x[2]*x[1]*x[1];
+		j-=1;
 
-				if(j<1)
-				{
-					double product=1;
-					for(int jj=0;jj<D;++jj)
-						product*=x[reihe[jj]];
-					return product;
-				}
-				j-=1;
+		if(j<1)
+		{
+			double product=1;
+			for(int jj=0;jj<D;++jj)
+				product*=x[reihe[jj]];
+			return product;
+		}
+		j-=1;
 
-				/*if(j<D)
-				{
-					return x[j]*x[j];
-				}
-				j-=D;
+		if (j < 500) {
+			double xx[D];
+			for (int d = 0; d < D; ++d)
+				xx[d] = (double) j / 500. * 3. * x[d];
+			return payoff(xx, zeit);
+		}
+		j -= 500;
 
-				if(j<D)
-				{
-					return x[j];
-				}
-				j-=D;
+		if (j < 500) {
+			return max(y[reihe[0]]- (double)(j)/500.*3,0);
+		}
+		j -= 500;
 
-				if(j<D)
-				{
-					return y[j]*y[j];
-				}
-				j-=D;
+		if (j < 500) {
+			double xx[D];
+			for (int d = 0; d < D; ++d){
+				xx[d] = x[d];
+				if(j%D==d)
+					xx[d] *=(double) j / 500. * 6.;
+			}
+			return payoff(xx, zeit);
+		}
+		j -= 500;
 
-				if(j<D)
-				{
-					return y[j];
-				}
-				j-=D;
+		if (j < 500) {
+			double xx[D];
+			for (int d = 0; d < D; ++d){
+				xx[d] = x[d];
+				if(j%D!=d)
+					xx[d] *=(double) j / 500. * 6.;
+			}
+			return payoff(xx, zeit);
+		}
+		j -= 500;
 
-				if(j<D)
-				{
-					return x[reihe[j]]*x[reihe[j]];
-				}
-				j-=D;
+		if (j < 500) {
+			double diff = x[reihe[0]]-x[reihe[1]];
+			return max(diff - (double) (j) / 500. * 1. * (double) D * X0[0], 0);
+		}
+		j -= 500;
 
-				if(j<D)
-				{
-					return x[reihe[j]];
-				}
-				j-=D;
+		if (j < 500) {
+			double summe = 0;
+			for (int d = 0; d < D; ++d)
+				summe += x[d];
+			return max(summe - (double) (j) / 500. * 4. * (double) D * X0[0], 0);
+		}
+		j -= 500;
 
-				if(j<D)
-				{
-					return y[reihe[j]]*y[reihe[j]];
-				}
-				j-=D;
-
-				if(j<D)
-				{
-					return y[reihe[j]];
-				}
-				j-=D;*/
-
-				if (j < 500) {
-					double xx[D];
-					for (int d = 0; d < D; ++d)
-						xx[d] = (double) j / 500. * 3. * x[d];
-					return payoff(xx, zeit);
-				}
-				j -= 500;
-
-				if (j < 500) {
-					return max(y[reihe[0]]- (double)(j)/500.*3,0);
-				}
-
-				j -= 500;
-
-				if (j < 500) {
-					double xx[D];
-					for (int d = 0; d < D; ++d){
-						xx[d] = x[d];
-						if(j%D==d)
-							xx[d] *=(double) j / 500. * 6.;
-					}
-					return payoff(xx, zeit);
-				}
-				j -= 500;
-
-				if (j < 500) {
-					double xx[D];
-					for (int d = 0; d < D; ++d){
-						xx[d] = x[d];
-						if(j%D!=d)
-							xx[d] *=(double) j / 500. * 6.;
-					}
-					return payoff(xx, zeit);
-				}
-				j -= 500;
-
-
-				if (j < 500) {
-					double diff = x[reihe[0]]-x[reihe[1]];
-					return max(diff - (double) (j) / 500. * 1. * (double) D * X0[0], 0);
-				}
-				j -= 500;
-
-				if (j < 500) {
-					double summe = 0;
-					for (int d = 0; d < D; ++d)
-						summe += x[d];
-					return max(summe - (double) (j) / 500. * 4. * (double) D * X0[0], 0);
-				}
-				j -= 500;
-
-				if (j < 500) {
-					double summe = 0;
-					for (int d = 0; d < D; ++d)
-						if(d!=j%3)
-							summe += x[d];
-					return max(summe - (double) (j) / 500. * 3. * (double) D * X0[0], 0);
-				}
-				j -= 500;
-				/*
-				if (j < 500) {
-					//double summe = 0;
-					// for (int d = 0; d < D; ++d)
-						//    if(d!=j%3)
-							//   summe += x[d];
-					//return exp (x[0]/100.*(double) (j) / 200.) * exp (x[1]/100.*(double) (j) / 200.);
-					return   exp((x[0]/100.-0.5)*(double) (j) / 500.)
-				 *exp((x[1]/100.-0.5)*(double) (j) / 500.)
-				 *exp((x[2]/100.-0.5)*(double) (j) / 500.);
-
-				}
-				j -= 500;*/
-
-				//		if (j < 500) {
-				//			int* reihe=IntFeld(5);
-				//			reihe=BubbleSort(x,D);
-				//			return sin(x[reihe[0]]-x[reihe[1]]*(double)j/500.);
-				//		}
-				//		j -= 500;
-				//
-
-				//        if(j==0){
-				//            return europeanValue(x,zeit*dt,T);
-				//        }
-				//
-				//        if(j==1){
-				//            return europeanValue(x,zeit*dt,zeit*dt+dt);
-				//        }
+		if (j < 500) {
+			double summe = 0;
+			for (int d = 0; d < D; ++d)
+				if(d!=j%3)
+					summe += x[d];
+			return max(summe - (double) (j) / 500. * 3. * (double) D * X0[0], 0);
+		}
+		j -= 500;
 	}
 
 	printf("Error598");
 	return -1;
 }
-
-
-//        if (j == 0)
-//            return exp(-y[0]);
-//        if (j == 1)
-//            return exp(-y[1]);
-//        if (j == 2)
-//            return exp(-y[2]);
-//        if (j == 3)
-//            return exp(-y[0] - y[1] - y[2]);
-//        if (j == 4)
-//            return exp(-y[0] * y[1]);
-//        if (j == 5)
-//            return exp(-y[1] * y[2]);
-//        if (j == 6)
-//            return exp(-y[0] * y[1]);
-//        j -= 7;
