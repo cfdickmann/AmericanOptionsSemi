@@ -231,7 +231,7 @@ public:
 	void inner_paths_erzeugenThread(int threadnummer);
 	int durchlaufactual;
 	void stuetzerwartungen_ausrechnen();
-	void stuetzpunkte_setzen();
+	void stuetzpunkte_setzen(int n);
 	void lp_ausgeben();
 	int J;
 	double** Matrix;
@@ -245,6 +245,7 @@ public:
 	//	void Test();
 	int nactual;
 	double linearCombinationOfBasis(int zeit, double* x);
+	double linearCombination(double* koeff, double* x);
 	double semi_f(int n, double* x);
 };
 

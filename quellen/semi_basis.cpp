@@ -142,17 +142,17 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 			return x[reihe[j]]*x[reihe[j+1]];
 		j-=(D>2?D-1:0);
 
-//		if(j<1)return x[0]*x[0]*x[2];
-//		j-=1;
-//
-//		if(j<1)return x[0]*x[2]*x[2];
-//		j-=1;
-//
-//		if(j<1)return x[2]*x[2]*x[1];
-//		j-=1;
-//
-//		if(j<1)return x[2]*x[1]*x[1];
-//		j-=1;
+		if(j<1)return x[0]*x[0]*x[2];
+		j-=1;
+
+		if(j<1)return x[0]*x[2]*x[2];
+		j-=1;
+
+		if(j<1)return x[2]*x[2]*x[1];
+		j-=1;
+
+		if(j<1)return x[2]*x[1]*x[1];
+		j-=1;
 
 		if(j<1)
 		{
