@@ -39,7 +39,15 @@ void AmericanOption::inner_paths_erzeugenThread(int threadnummer){
 }
 
 void AmericanOption::stuetzpunkte_ausrichten(){
-	for (int lauf = 0; lauf < 20; lauf++)
+	//	if (verbose)
+	{fstream f;
+	f.open("vorher.txt", ios::out);
+	for(int j=0;j<J;++j)
+		for(int d=0;d<D;++d)
+			f<<stuetzpunkte[j][d]<<endl;
+	f.close();}
+
+	for (int lauf = 0; lauf < 0; lauf++)
 	{
 		int minindex=-1;
 		double min=100000000;
@@ -63,6 +71,92 @@ void AmericanOption::stuetzpunkte_ausrichten(){
 			stuetzpunkte[minindex][d] = XX[N / 2][d];
 		deleteDoubleFeld(XX,N,D);
 	}
+	//	if (verbose)
+	{fstream f;
+	f.open("nachher.txt", ios::out);
+	for(int j=0;j<J;++j)
+		for(int d=0;d<D;++d)
+			f<<stuetzpunkte[j][d]<<endl;
+	f.close();}
+}
+
+double * koeff_ergebnisse;
+double * actualkoeff;
+
+void* DELEGATE_koeff_testen(void* data) {
+	zeiger3->koeff_testenThread(((int*)data)[0]);
+	pthread_exit(NULL);
+	return NULL;
+}
+
+void AmericanOption::koeff_testenThread(int threadnummer)
+{
+	double ergebnis=0;
+	int* koeff_index = IntFeld(Mphi);
+	int indexlauf = 0;
+	for (int m = 0; m < Mphi; ++m)
+		if (actualkoeff[m] != 0) {
+			koeff_index[indexlauf] = m;
+			indexlauf++;
+		}
+
+	for (int lauf = 0; lauf < 1000; ++lauf) {
+		double** x=DoubleFeld(N,D);
+		RNG gen;
+		Pfadgenerieren(x,0,X0,&gen);
+		double sum = 0;
+		for (int m = 0; m < indexlauf; ++m) {
+			sum += actualkoeff[koeff_index[m]] * semi_Basisfunktionen(nactual, koeff_index[m], koeff_testingpaths[lauf][nactual]);
+			//sum += koeff[koeff_index[m]] * semi_Basisfunktionen(n, koeff_index[m], x[n]);
+		}
+		deleteDoubleFeld(x,N,D);
+		ergebnis +=  max(0, payoff(x[nactual], nactual) - sum)/1000.;
+	}
+
+	deleteIntFeld(koeff_index,Mphi);
+	koeff_ergebnisse[threadnummer]=ergebnis;
+}
+
+double AmericanOption::koeff_testen(double* koeff)
+{
+	actualkoeff=koeff;
+	koeff_ergebnisse=DoubleFeld(Threadanzahl);
+
+	pthread_t threads[Threadanzahl];
+	for (int j = 0; j < Threadanzahl; j++)
+		pthread_create(&threads[j], NULL, DELEGATE_koeff_testen, array_machen(j));
+	for (int j = 0; j < Threadanzahl; j++)
+		pthread_join(threads[j], NULL);
+
+	double summe=0;
+	for(int t=0;t<Threadanzahl;++t)
+		summe+=koeff_ergebnisse[t];
+	return summe;
+
+	//	double ergebnis=0;
+	//	int* koeff_index = IntFeld(Mphi);
+	//	int indexlauf = 0;
+	//	for (int m = 0; m < Mphi; ++m)
+	//		if (koeff[m] != 0) {
+	//			koeff_index[indexlauf] = m;
+	//			indexlauf++;
+	//		}
+	//
+	//	for (int lauf = 0; lauf < 100000; ++lauf) {
+	//		double** x=DoubleFeld(N,D);
+	//		RNG gen;
+	//		Pfadgenerieren(x,0,X0,&gen);
+	//		double sum = 0;
+	//		for (int m = 0; m < indexlauf; ++m) {
+	//			sum += koeff[koeff_index[m]] * semi_Basisfunktionen(n, koeff_index[m], koeff_testingpaths[lauf][n]);
+	//			//sum += koeff[koeff_index[m]] * semi_Basisfunktionen(n, koeff_index[m], x[n]);
+	//		}
+	//		deleteDoubleFeld(x,N,D);
+	//		ergebnis +=  max(0, payoff(x[n], n) - sum)/100000.;
+	//	}
+	//
+	//	deleteIntFeld(koeff_index,Mphi);
+	//	return ergebnis;
 }
 
 void AmericanOption::semi() {
@@ -85,14 +179,14 @@ void AmericanOption::semi() {
 	if (D == 2) {
 		Mphi = 1712; //37   // Basisfunktionen
 		J = 100; //10*10;//49 // Stuetzpunkte
-		M = 1000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+		M = 3000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 10
 	}
 
 	if (D >= 3) {
-		Mphi = 1+3+D*2+(D>2?D-1:0)+4+1+3500;
+		Mphi = 1+3+D*2+(D>2?D-1:0)+/*4*/+1+3500;
 		J = 100; //216   125
-		M = 10000;   //5000
+		M = 20000;   //5000
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 5
 	}
 
@@ -109,10 +203,10 @@ void AmericanOption::semi() {
 	if (verbose)printf("innere Pfade erzeugen\n");
 
 	semi_inner_paths = DoubleFeld(durchlaeufe,J,M,N,D);
-//PfadeNeuMachen=IntFeld(durchlaeufe,J);
-//for(int u=0;u<durchlaeufe;++u)
-//	for(int j=0;j<J;++j)
-//		PfadeNeuMachen[u][j]=1;
+	//PfadeNeuMachen=IntFeld(durchlaeufe,J);
+	//for(int u=0;u<durchlaeufe;++u)
+	//	for(int j=0;j<J;++j)
+	//		PfadeNeuMachen[u][j]=1;
 
 	pthread_t threads[Threadanzahl];
 	for (int j = 0; j < Threadanzahl; j++)
@@ -125,23 +219,21 @@ void AmericanOption::semi() {
 	semi_betas_index_max = IntFeld(N);
 	stuetzerwartung = DoubleFeld(J);
 
-//	//	if (verbose)
-//	{fstream f;
-//	f.open("vorher.txt", ios::out);
-//	for(int j=0;j<J;++j)
-//		for(int d=0;d<D;++d)
-//			f<<stuetzpunkte[j][d]<<endl;
-//	f.close();}
-//
-//	stuetzpunkte_ausrichten();
-//
-//	{fstream f;
-//	f.open("nachher.txt", ios::out);
-//	for(int j=0;j<J;++j)
-//		for(int d=0;d<D;++d)
-//			f<<stuetzpunkte[j][d]<<endl;
-//	f.close();}
+	stuetzpunkte_ausrichten();
 
+	//printf("koeff-testingpfade erzeugen\n");
+	//RNG generator;
+	//koeff_testingpaths=DoubleFeld(1000,N,D);
+	//for(int u=0;u<1000;++u)
+	//{
+	//	double** x=DoubleFeld(N,D);
+	//	Pfadgenerieren(x,0,X0,&generator);
+	//	koeff_testingpaths[u]=x;
+	//}
+
+	Matrix = DoubleFeld(J, Mphi);
+	C = DoubleFeld(Mphi);
+	RS = stuetzerwartung;
 	for (int n = N - 2; n >= 0; --n) {
 		printf("Zeitschritt %d\n", n);
 		nactual = n;
@@ -149,6 +241,7 @@ void AmericanOption::semi() {
 		double** semi_betas_Feld = DoubleFeld(durchlaeufe, Mphi);
 		for (int i = 0; i < durchlaeufe; ++i) {
 			durchlaufactual = i;
+
 			//Stuetzerwartung ausrechnen
 			time_t time1 = time(NULL);
 			pthread_t threads[Threadanzahl];
@@ -157,16 +250,34 @@ void AmericanOption::semi() {
 			for (int j = 0; j < Threadanzahl; j++)
 				pthread_join(threads[j], NULL);
 			if (verbose)stuetzpunkte_ausgeben();
-			time_t time2 = time(NULL);
-			if (verbose)printf("Time for Estimation time:%ld seconds\n", time2 - time1);
+			printf("Estimation time:%ld seconds\n", time(NULL) - time1);
 			//LP aufstellen
-			Matrix = DoubleFeld(J, Mphi);
-			C = DoubleFeld(Mphi);
-			RS = stuetzerwartung;
-			semi_betas_Feld[i] = LP_mitGLPK_Loesen(0, J);
-			deleteDoubleFeld(Matrix,J,Mphi);
-			deleteDoubleFeld(C,Mphi);
+			semi_betas_Feld[i]=LP_mitGLPK_Loesen(NULL, J);
+			//
+			stuetzstelle_active=new bool[J];
+			//
+			//			double min=10000000;
+			//			double* temp_koeff;
+			//
+			//			for(lauf=0;lauf<1;++lauf){
+			//				for(int j=0;j<J;++j)
+			//					if(rand()%10>-7)stuetzstelle_active[j]=true;else  //Achtung! TODO
+			//						stuetzstelle_active[j]=false;
+			//
+			//				temp_koeff = LP_mitGLPK_Loesen(NULL, J);
+			//				double testergebnis=0;//koeff_testen(temp_koeff);
+			//				printf("Testergebnis %d: %f\n",lauf,testergebnis);
+			//				if(testergebnis<min)
+			//				{
+			//					deleteDoubleFeld(semi_betas_Feld[i],Mphi);
+			//					semi_betas_Feld[i] = temp_koeff;
+			//					min=testergebnis;
+			//				}else
+			//					deleteDoubleFeld(temp_koeff,Mphi);
+			//			}
+			//			printf("Minimum: %f\n",min);
 		}
+
 		//Durchschnitt als Ergebniss nehmen
 		for (int m = 0; m < Mphi; ++m) {
 			semi_betas[n][m] = 0;
@@ -181,36 +292,38 @@ void AmericanOption::semi() {
 			}
 		semi_betas_index_max[n] = indexlauf;
 
-//		//qualitaet pruefen
-//		double* abstaende=DoubleFeld(J);
-//		for(int j=0;j<J;++j){
-//			abstaende[j]=stuetzerwartung[j]-linearCombinationOfBasis(nactual,stuetzpunkte[j]);
-//		//if(abstaende[j]==0)PfadeNeuMachen[j]=1;elsePfade
-//		}
-//		int* index=BubbleSort(abstaende,J);
-//		for(int j=0;j<J;++j)
-//		{
-//			printf("p(");
-//			for(int d=0;d<D;++d)
-//				printf("%.3lf, ",stuetzpunkte[index[j]][d]);
-//			printf("): abstaende %f\n",abstaende[index[j]]);
-//		}
-//		deleteDoubleFeld(abstaende,J);
-//		deleteIntFeld(index,J);
-//
-//
-//		if (verbose)printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
-//		if (verbose)semi_ergebnisse_ausgeben();
+		//		//qualitaet pruefen
+		//		double* abstaende=DoubleFeld(J);
+		//		for(int j=0;j<J;++j){
+		//			abstaende[j]=stuetzerwartung[j]-linearCombinationOfBasis(nactual,stuetzpunkte[j]);
+		//		//if(abstaende[j]==0)PfadeNeuMachen[j]=1;elsePfade
+		//		}
+		//		int* index=BubbleSort(abstaende,J);
+		//		for(int j=0;j<J;++j)
+		//		{
+		//			printf("p(");
+		//			for(int d=0;d<D;++d)
+		//				printf("%.3lf, ",stuetzpunkte[index[j]][d]);
+		//			printf("): abstaende %f\n",abstaende[index[j]]);
+		//		}
+		//		deleteDoubleFeld(abstaende,J);
+		//		deleteIntFeld(index,J);
+		//
+		//		if (verbose)printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
+		//		if (verbose)semi_ergebnisse_ausgeben();
 
 		deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
 	}
 
 	semi_testing();
+	deleteDoubleFeld(Matrix,J,Mphi);
+	deleteDoubleFeld(C,Mphi);
 	deleteDoubleFeld(semi_betas,N, Mphi);
 	deleteIntFeld(semi_betas_index ,N, Mphi);
 	deleteIntFeld(semi_betas_index_max,N);
 	deleteDoubleFeld(stuetzerwartung ,J);
 	deleteDoubleFeld(semi_inner_paths,durchlaeufe,J,M,N,D);
+	delete[] stuetzstelle_active;
 }
 
 double AmericanOption::linearCombinationOfBasis(int zeit, double* x) {
@@ -269,14 +382,14 @@ void AmericanOption::stuetzerwartung_ausrechnenThread(int k) {
 					stuetzerwartung[j] += semi_f(nnn, semi_inner_paths[durchlaufactual][j][m][nnn - nactual]) / (double) (M);
 		}
 }
-
-double AmericanOption::euklidMetrik(double* s1, double* s2)
-{
-	double summe=0;
-	for(int d=0;d<D;++d)
-		summe+= pow(s1[d]-s2[d],2);
-	return sqrt(summe);
-}
+//
+//double AmericanOption::euklidMetrik(double* s1, double* s2)
+//{
+//	double summe=0;
+//	for(int d=0;d<D;++d)
+//		summe+= pow(s1[d]-s2[d],2);
+//	return sqrt(summe);
+//}
 
 
 void AmericanOption::stuetzpunkte_setzen() {
@@ -532,16 +645,26 @@ void AmericanOption::stuetzpunkte_ausgeben()
 }
 
 double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
+
+	time_t time1 = time(NULL);
+
 	for (int m = 0; m < Mphi; ++m)
 		for (int j = 0; j < J; ++j)
-			Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
+			if(stuetzstelle_active[j])
+				Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
+			else
+				Matrix[j][m]=0;
 
 	for (int m = 0; m < Mphi; ++m) {
 		C[m] = 0;
 		for (int j = 0; j < J; ++j)
-			C[m] += semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
+			if(stuetzstelle_active[j])
+				C[m] += semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
 	}
 
+	printf("Optimization aufstellen time:%ld seconds\n", time(NULL) - time1);
+
+	time1 = time(NULL);
 	if(index==NULL){
 		indexlaenge=Mphi;
 		index=new int[Mphi];
@@ -585,8 +708,9 @@ double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
 	//Loesung auslesen
 	double* x = DoubleFeld(indexlaenge);
 	for (int m = 0; m < indexlaenge; ++m)x[m] = glp_get_col_prim(lp, m + 1);
-	//deleteDoubleFeld(x,indexlaenge);
+
 	glp_delete_prob(lp);
+	printf("Optimization time:%ld seconds\n", time(NULL) - time1);
 	return x;
 }
 

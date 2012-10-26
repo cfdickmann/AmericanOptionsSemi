@@ -328,6 +328,8 @@ int ** IntFeld(int m,int n){
 
 double * DoubleFeld(int m){
 	double* erg=new double[m];
+	for(int o=0;o<m;++o)
+		erg[o]=0;
 	return erg;
 }
 
