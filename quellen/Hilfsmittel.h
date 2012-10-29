@@ -27,6 +27,8 @@ int* BubbleSort(double* werte, int l);
 int* array_machen(int z);
 //int hargMax(double* v, int l, int ll);
 //int hMax(double* v, int l, int ll);
+double summe(double* vector,int laenge);
+double mean(double* vector,int laenge);
 
 double Max(double* v, int l);
 double* LGSloesen(double** A, double* b, int Mphi);
@@ -42,6 +44,7 @@ void ErgebnisAnhaengen(double d, char* filename);
 
 int * IntFeld(int m);
 int ** IntFeld(int m,int n);
+int *** IntFeld(int m,int n, int o);
 double * DoubleFeld(int m);
 double ** DoubleFeld(int m,int n);
 double *** DoubleFeld(int m, int n, int o);
@@ -56,6 +59,7 @@ void deleteDoubleFeld(double ***** D, int m, int n, int o, int p, int q);
 
 void deleteIntFeld(int * D, int m);
 void deleteIntFeld(int ** D  ,int m,int n);
+void deleteIntFeld(int *** D  ,int m,int n,int o);
 
 double** faurepts(int n0, int npts, int d, int b);
 void ausgeben(double* x, int j);

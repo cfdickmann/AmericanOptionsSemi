@@ -10,7 +10,7 @@
 #include <iostream>
 #include <stdlib.h>
 //#include "../src/optimization.h"
-
+#include "Vektor.h"
 #include <time.h>
 #include "RNG.h"
 #include "MTRand.h"
@@ -43,6 +43,7 @@ class AmericanOption {
 public:
 	AmericanOption();
 	virtual ~AmericanOption();
+
 
 	int Iterations_Nummer;
 	time_t Anfangszeit;
@@ -211,7 +212,7 @@ public:
 	//void semi_betas_indexieren(int n);
 	//int* stuetzpunkte_Punkte;
 	double koeff_testen(double* koeff);
-	void koeff_testenThread(int threadnummer);
+	void koeff_testen_THREAD(int threadnummer);
 	double *** koeff_testingpaths;
 	int durchlaeufe;
 	double ***** semi_inner_paths;
@@ -228,10 +229,13 @@ public:
 	void semi_ergebnisse_ausgeben();
 	void stuetzpunkte_ausgeben();
 	void semi_inner_paths_erzeugen();
-	void inner_paths_erzeugenThread(int threadnummer);
+	void inner_paths_erzeugen_THREAD(int threadnummer);
 	int durchlaufactual;
 	void stuetzerwartungen_ausrechnen();
+	void stuetzerwartung_ausrechnen();
+
 	void stuetzpunkte_setzen(int n);
+
 	void lp_ausgeben();
 	int J;
 	double** Matrix;

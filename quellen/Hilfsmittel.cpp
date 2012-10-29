@@ -40,6 +40,19 @@ double betrag(double x)
 	return x<0?-x:x;
 }
 
+double summe(double* vector,int laenge)
+{
+	double summe=0;
+	for(int i=0;i<laenge;++i)
+		summe+=vector[i];
+	return summe;
+}
+
+double mean(double* vector,int laenge)
+{
+	return summe(vector,laenge)/(double)(laenge);
+}
+
 double* alphasLaden(int K)
 {
 	double* alpha=(double*)malloc(sizeof(double)*(K+1));
@@ -326,6 +339,13 @@ int ** IntFeld(int m,int n){
 	return erg;
 }
 
+int *** IntFeld(int m,int n, int o){
+	int*** erg=new int**[m];
+	for(int i=0;i<m;++i)
+		erg[i]=IntFeld(n,o);
+	return erg;
+}
+
 double * DoubleFeld(int m){
 	double* erg=new double[m];
 	for(int o=0;o<m;++o)
@@ -396,6 +416,12 @@ void deleteIntFeld(int * D, int m){
 void deleteIntFeld(int ** D  ,int m,int n){
 	for(int i=0;i<m;++i)
 		deleteIntFeld(D[i],n);
+	delete[] D;
+}
+
+void deleteIntFeld(int *** D  ,int m,int n, int o){
+	for(int i=0;i<m;++i)
+		deleteIntFeld(D[i],n,o);
 	delete[] D;
 }
 
