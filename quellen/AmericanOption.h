@@ -27,7 +27,6 @@
 #include <fstream>
 #include <stdlib.h>
 #include <cstring>
-#include "ThreadDaten.h"
 
 #define MAX_CALL 1
 #define MIN_PUT 0
@@ -209,9 +208,7 @@ public:
 	//semi members
 	void  stuetzpunkte_ausrichten();
 	bool* stuetzstelle_active;
-	//bool* PfadeNeuMachen;
-	//void semi_betas_indexieren(int n);
-	//int* stuetzpunkte_Punkte;
+	double * actualkoeff;
 	double koeff_testen(double* koeff);
 	void koeff_testen_THREAD(int threadnummer);
 	double *** koeff_testingpaths;
@@ -224,7 +221,7 @@ public:
 	//        double* LP_mitALGLIB_Loesen();
 	double* LP_mitGLPK_Loesen(int* index, int indexlaenge);
 	void semi_testing();
-	void semi_testThread(ThreadDaten* NZ);
+	void semi_testThread(int threadnummer);
 	int semi_testingpaths;
 	void semi_mehrere_S0_testen();
 	void semi_ergebnisse_ausgeben();

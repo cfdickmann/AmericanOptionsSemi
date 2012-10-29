@@ -5,8 +5,8 @@
  *      Author: cfdickmann
  */
 
-#ifndef NUMMERUNDZEIGER_H_
-#define NUMMERUNDZEIGER_H_
+#ifndef THREADDATEN_H_
+#define THREADDATEN_H_
 
 class ThreadDaten {
 public:
@@ -16,7 +16,8 @@ public:
 	double getErgebnis();
 
 	ThreadDaten();
+	ThreadDaten(int t, double* erg);
 	virtual ~ThreadDaten();
 };
 
-#endif /* NUMMERUNDZEIGER_H_ */
+#endif /* THREADDATEN_H_ */

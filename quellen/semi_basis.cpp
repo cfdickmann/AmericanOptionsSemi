@@ -163,63 +163,63 @@ double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
 		}
 		j-=1;
 
-		if (j < 1500) {
+		if (j < 100) {
 			double xx[D];
 			for (int d = 0; d < D; ++d)
-				xx[d] = (double) j / 1500. * 3. * x[d];
+				xx[d] = (double) j / 100. * 3. * x[d];
 			return payoff(xx, zeit);
 		}
-		j -= 1500;
+		j -= 100;
 
-		if (j < 1500) {
-			return max(y[reihe[0]]- (double)(j)/1500.*3,0);
+		if (j < 100) {
+			return max(y[reihe[0]]- (double)(j)/100.*3,0);
 		}
-		j -= 1500;
+		j -= 100;
 
-		if (j < 1500) {
+		if (j < 100) {
 			double xx[D];
 			for (int d = 0; d < D; ++d){
 				xx[d] = x[d];
 				if(j%D==d)
-					xx[d] *=(double) j / 1500. * 6.;
+					xx[d] *=(double) j / 100. * 6.;
 			}
 			return payoff(xx, zeit);
 		}
-		j -= 1500;
+		j -= 100;
 
-		if (j < 1500) {
+		if (j < 100) {
 			double xx[D];
 			for (int d = 0; d < D; ++d){
 				xx[d] = x[d];
 				if(j%D!=d)
-					xx[d] *=(double) j / 1500. * 6.;
+					xx[d] *=(double) j / 100. * 6.;
 			}
 			return payoff(xx, zeit);
 		}
-		j -= 1500;
+		j -= 100;
 
-		if (j < 1500) {
+		if (j < 100) {
 			double diff = x[reihe[0]]-x[reihe[1]];
-			return max(diff - (double) (j) / 1500. * 1. * (double) D * X0[0], 0);
+			return max(diff - (double) (j) / 100. * 1. * (double) D * X0[0], 0);
 		}
-		j -= 1500;
+		j -= 100;
 
-		if (j < 1500) {
+		if (j < 100) {
 			double summe = 0;
 			for (int d = 0; d < D; ++d)
 				summe += x[d];
-			return max(summe - (double) (j) / 1500. * 4. * (double) D * X0[0], 0);
+			return max(summe - (double) (j) / 100. * 4. * (double) D * X0[0], 0);
 		}
-		j -= 1500;
+		j -= 100;
 
-		if (j < 1500) {
+		if (j < 100) {
 			double summe = 0;
 			for (int d = 0; d < D; ++d)
 				if(d!=j%3)
 					summe += x[d];
-			return max(summe - (double) (j) / 1500. * 3. * (double) D * X0[0], 0);
+			return max(summe - (double) (j) / 100. * 3. * (double) D * X0[0], 0);
 		}
-		j -= 5100;
+		j -= 100;
 	}
 
 	printf("Error598");

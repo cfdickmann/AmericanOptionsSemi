@@ -11,14 +11,19 @@ ThreadDaten::ThreadDaten() {
 	// TODO Auto-generated constructor stub
 }
 
+ThreadDaten::ThreadDaten(int t, double * erg) {
+	nummer=t;
+	ergebnis=erg;
+}
+
 ThreadDaten::~ThreadDaten() {
 	// TODO Auto-generated destructor stub
 }
 
 void ThreadDaten::setErgebnis(double D){
-	*ergebnis=D;
+	ergebnis[0]=D;
 }
 
 double ThreadDaten::getErgebnis(){
-	return *ergebnis;
+	return ergebnis[0];
 }

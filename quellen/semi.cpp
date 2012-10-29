@@ -11,7 +11,6 @@
 #include "Hilfsmittel.h"
 #include <string.h>
 #include <glpk.h>
-#include "ThreadDaten.h"
 
 using namespace std;
 //using namespace alglib;
@@ -151,9 +150,9 @@ void AmericanOption::semi() {
 	}
 
 	if (D >= 3) {
-		Mphi = 1+3+D*2+(D>2?D-1:0)+4+1+3500+7000;
+		Mphi = 1+3+D*2+(D>2?D-1:0)+4+1+700;
 		J = 200;
-		M = 2000;
+		M = 10000;
 		durchlaeufe = 1;
 	}
 
@@ -206,7 +205,7 @@ void AmericanOption::semi() {
 			{//Nicht ganz parallel
 				double min=10000000;
 				double* temp_koeff;
-				for(lauf=0;lauf<10;++lauf){
+				for(lauf=0;lauf<30;++lauf){
 					int number_active=0;
 					for(int j=0;j<J;++j)
 						if(rand()%2==0){
@@ -445,7 +444,7 @@ void AmericanOption::stuetzerwartung_ausrechnenThread(int k) {
 					stuetzerwartung[j] += semi_f(nnn, semi_inner_paths[durchlaufactual][j][m][nnn - nactual]) / (double) (M);
 		}
 }
-//
+
 double AmericanOption::euklidMetrik(double* s1, double* s2)
 {
 	double summe=0;
@@ -453,7 +452,6 @@ double AmericanOption::euklidMetrik(double* s1, double* s2)
 		summe+= pow(s1[d]-s2[d],2);
 	return sqrt(summe);
 }
-
 
 void AmericanOption::stuetzpunkte_setzen(int n) {
 	if (D == 1) {
@@ -520,48 +518,53 @@ void AmericanOption::lp_ausgeben() {
 	}
 }
 
+double * semi_ergebnisse;
+
 void* DELEGATE_semi_test(void* data) {
-	zeiger3->semi_testThread((ThreadDaten*)data);
+	zeiger3->semi_testThread(((int*)data)[0]);
+	//zeiger3->semi_testThread((ThreadDaten*)data);
 	pthread_exit(NULL);
 	return NULL;
 }
 
-void AmericanOption::semi_testThread(ThreadDaten* threaddaten) {
+void AmericanOption::semi_testThread(int threadnummer) {
 	double erg=0;
 	double** x = DoubleFeld(N, D);
-	int seed = time(NULL) +threaddaten->nummer + getpid();
+	int seed = time(NULL) +threadnummer + getpid();
 	srand(seed);
 	int durchlaeufe = (int)(double)(semi_testingpaths) / (double)(Threadanzahl);
 	RNG generator;
 	for (int m = 0; m < durchlaeufe; ++m) {
 		Pfadgenerieren(x, 0,X0,&generator);
 		double sum = 0;
-		if(		semi_f(0, x[0])!=0)printf("Error 776\n");
 		for (int n = 0; n < N; ++n)
 			sum += semi_f(n, x[n]);
 		erg+=sum/(double)(durchlaeufe);
 	}
-	threaddaten->setErgebnis(erg);
+	printf("ergeb %d, %f\n",threadnummer,erg);
+	semi_ergebnisse[threadnummer]=erg;
 	deleteDoubleFeld(x,N,D);
 }
 
 void AmericanOption::semi_testing() {
 	printf("Testing\n");
 
-	double ergebnisse[Threadanzahl];
+	semi_ergebnisse=DoubleFeld(Threadanzahl);
 
 	pthread_t threads[Threadanzahl];
 	for (int j = 0; j < Threadanzahl; j++){
-		ThreadDaten NZ;
-		NZ.nummer=j;
-		NZ.ergebnis=&(ergebnisse[j]);
-		pthread_create(&threads[j], NULL, DELEGATE_semi_test, &NZ);
+		int nummer[1];
+		nummer[0]=j;
+		pthread_create(&threads[j], NULL, DELEGATE_semi_test, array_machen(j));
 	}
 	for (int j = 0; j < Threadanzahl; j++)
 		pthread_join(threads[j], NULL);
 
-	double erg=mean(ergebnisse,Threadanzahl);
+	for (int j = 0; j < Threadanzahl; j++)
+		printf("ergebni %f\n",semi_ergebnisse[j]);
 
+	double erg=mean(semi_ergebnisse,Threadanzahl);
+deleteDoubleFeld(semi_ergebnisse,Threadanzahl);
 	printf("%f\n", erg);
 	ErgebnisAnhaengen(erg,(char*)"ergebnisse_semi.txt");
 
