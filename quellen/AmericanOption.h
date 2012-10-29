@@ -27,6 +27,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <cstring>
+#include "ThreadDaten.h"
 
 #define MAX_CALL 1
 #define MIN_PUT 0
@@ -223,7 +224,7 @@ public:
 	//        double* LP_mitALGLIB_Loesen();
 	double* LP_mitGLPK_Loesen(int* index, int indexlaenge);
 	void semi_testing();
-	void semi_testThread(int threadnummer);
+	void semi_testThread(ThreadDaten* NZ);
 	int semi_testingpaths;
 	void semi_mehrere_S0_testen();
 	void semi_ergebnisse_ausgeben();

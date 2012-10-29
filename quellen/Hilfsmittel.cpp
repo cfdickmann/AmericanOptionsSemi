@@ -40,17 +40,17 @@ double betrag(double x)
 	return x<0?-x:x;
 }
 
-double summe(double* vector,int laenge)
+double summe(double* array,int laenge)
 {
 	double summe=0;
 	for(int i=0;i<laenge;++i)
-		summe+=vector[i];
+		summe+=array[i];
 	return summe;
 }
 
-double mean(double* vector,int laenge)
+double mean(double* array,int laenge)
 {
-	return summe(vector,laenge)/(double)(laenge);
+	return summe(array,laenge)/(double)(laenge);
 }
 
 double* alphasLaden(int K)

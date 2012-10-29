@@ -11,6 +11,7 @@
 #include "Hilfsmittel.h"
 #include <string.h>
 #include <glpk.h>
+#include "ThreadDaten.h"
 
 using namespace std;
 //using namespace alglib;
@@ -132,7 +133,7 @@ void AmericanOption::semi() {
 
 	printf("LSM_k: %d,%d,%d,%d,%d\n",LSM_K0,LSM_K1,LSM_K2,LSM_K3,LSM_K4);
 
-	semi_testingpaths = 100000; //Wie viele Testingpaths
+	semi_testingpaths = 1000000; //Wie viele Testingpaths
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
 
 	if (D == 1) {
@@ -150,9 +151,9 @@ void AmericanOption::semi() {
 	}
 
 	if (D >= 3) {
-		Mphi = 1+3+D*2+(D>2?D-1:0)+4+1+3500;
+		Mphi = 1+3+D*2+(D>2?D-1:0)+4+1+3500+7000;
 		J = 200;
-		M = 10000;
+		M = 2000;
 		durchlaeufe = 1;
 	}
 
@@ -205,7 +206,7 @@ void AmericanOption::semi() {
 			{//Nicht ganz parallel
 				double min=10000000;
 				double* temp_koeff;
-				for(lauf=0;lauf<20;++lauf){
+				for(lauf=0;lauf<10;++lauf){
 					int number_active=0;
 					for(int j=0;j<J;++j)
 						if(rand()%2==0){
@@ -230,15 +231,16 @@ void AmericanOption::semi() {
 
 			}else
 			{//mitForks
-				int** ergebnispipe=IntFeld(Threadanzahl,2);
-				for(int z=0;z<Threadanzahl;++z)
+				printf("mit Forks!");
+				int** ergebnispipe=IntFeld(20,2);
+				for(int z=0;z<20;++z)
 					pipe(ergebnispipe[z]);
-				int*** koeffpipe=IntFeld(Threadanzahl,Mphi,2);
-				for(int z=0;z<Threadanzahl;++z)
+				int*** koeffpipe=IntFeld(20,Mphi,2);
+				for(int z=0;z<20;++z)
 					for(int m=0;m<Mphi;++m)
 						pipe(koeffpipe[z][m]);
 
-				for(int f=0;f<5;++f)
+				for(int f=0;f<20;++f)
 					if (fork() == 0)
 					{
 						srand(f+getpid()+f+time(NULL));
@@ -253,18 +255,25 @@ void AmericanOption::semi() {
 						double* temp_koeff = LP_mitGLPK_Loesen(NULL, J);
 						delete[] stuetzstelle_active;
 						double testergebnis=0;
-						testergebnis=koeff_testen(temp_koeff);
-						printf("Testergebnis %d (%d aktiv): %f\n",f,number_active,testergebnis);
+						//testergebnis=koeff_testen(temp_koeff);
+						//printf("Testergebnis %d (%d aktiv): %f\n",f,number_active,testergebnis);
 
 						for(int m=0;m<Mphi;m++)
 							InPipeSchreiben(koeffpipe[f][m],temp_koeff[m]); //Achtung Reihenfolge wichtig!
 						InPipeSchreiben(ergebnispipe[f],testergebnis);
 						deleteDoubleFeld(temp_koeff,Mphi);
+						deleteDoubleFeld(Matrix,J,Mphi);
+						deleteDoubleFeld(C,Mphi);
+						deleteDoubleFeld(semi_betas,N, Mphi);
+						deleteIntFeld(semi_betas_index ,N, Mphi);
+						deleteIntFeld(semi_betas_index_max,N);
+						deleteDoubleFeld(stuetzerwartung ,J);
+						deleteDoubleFeld(semi_inner_paths,durchlaeufe,J,M,N,D);
+						delete[] stuetzstelle_active;
 						exit(0);
 					}
-
 				double min=10000000;
-				for(int f=0;f<Threadanzahl;++f)
+				for(int f=0;f<20;++f)
 				{
 					double erg=AusPipeLesen(ergebnispipe[f]);
 					if(erg<min)
@@ -276,7 +285,6 @@ void AmericanOption::semi() {
 				}
 				deleteIntFeld(ergebnispipe,Threadanzahl,2);
 				deleteIntFeld(koeffpipe,Threadanzahl,Mphi,2);
-
 				//printf("Minimum: %f\n",min);
 			}
 		}
@@ -313,16 +321,12 @@ void AmericanOption::semi() {
 		//		deleteDoubleFeld(abstaende,J);
 		//		deleteIntFeld(index,J);
 
-		//if (verbose)printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
+		printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
 		//		if (verbose)semi_ergebnisse_ausgeben();
 
 		deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
 	}
 
-	semi_testing();
-	semi_testing();
-	semi_testing();
-	semi_testing();
 	semi_testing();
 
 	deleteDoubleFeld(Matrix,J,Mphi);
@@ -516,22 +520,17 @@ void AmericanOption::lp_ausgeben() {
 	}
 }
 
-double * semi_ergebnisse;
-
 void* DELEGATE_semi_test(void* data) {
-	zeiger3->semi_testThread(((int*)data)[0]);
+	zeiger3->semi_testThread((ThreadDaten*)data);
 	pthread_exit(NULL);
 	return NULL;
 }
 
-void AmericanOption::semi_testThread(int threadnummer) {
-	semi_ergebnisse[threadnummer] = 0;
-
+void AmericanOption::semi_testThread(ThreadDaten* threaddaten) {
+	double erg=0;
 	double** x = DoubleFeld(N, D);
-
-	int seed = time(NULL) + threadnummer + getpid();
+	int seed = time(NULL) +threaddaten->nummer + getpid();
 	srand(seed);
-
 	int durchlaeufe = (int)(double)(semi_testingpaths) / (double)(Threadanzahl);
 	RNG generator;
 	for (int m = 0; m < durchlaeufe; ++m) {
@@ -540,25 +539,28 @@ void AmericanOption::semi_testThread(int threadnummer) {
 		if(		semi_f(0, x[0])!=0)printf("Error 776\n");
 		for (int n = 0; n < N; ++n)
 			sum += semi_f(n, x[n]);
-		semi_ergebnisse[threadnummer]+=sum/(double)(durchlaeufe);
+		erg+=sum/(double)(durchlaeufe);
 	}
+	threaddaten->setErgebnis(erg);
 	deleteDoubleFeld(x,N,D);
 }
 
 void AmericanOption::semi_testing() {
 	printf("Testing\n");
 
-	semi_ergebnisse=DoubleFeld(Threadanzahl);
+	double ergebnisse[Threadanzahl];
 
 	pthread_t threads[Threadanzahl];
 	for (int j = 0; j < Threadanzahl; j++){
-		int nummer[1]={j};
-		pthread_create(&threads[j], NULL, DELEGATE_semi_test, nummer);
+		ThreadDaten NZ;
+		NZ.nummer=j;
+		NZ.ergebnis=&(ergebnisse[j]);
+		pthread_create(&threads[j], NULL, DELEGATE_semi_test, &NZ);
 	}
 	for (int j = 0; j < Threadanzahl; j++)
 		pthread_join(threads[j], NULL);
 
-	double erg=mean(semi_ergebnisse,Threadanzahl);
+	double erg=mean(ergebnisse,Threadanzahl);
 
 	printf("%f\n", erg);
 	ErgebnisAnhaengen(erg,(char*)"ergebnisse_semi.txt");
