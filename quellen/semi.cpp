@@ -57,19 +57,16 @@ void AmericanOption::koeff_testen_THREAD(int threadnummer)
 			koeff_index[indexlauf] = m;
 			indexlauf++;
 		}
-	double** x=DoubleFeld(N,D);
-	RNG gen;
+
 	for (int lauf = 0; lauf < 10000; ++lauf)
 		if(lauf%Threadanzahl==threadnummer)
 		{
-			Pfadgenerieren(x,0,X0,&gen);
 			double sum = 0;
 			for (int m = 0; m < indexlauf; ++m)
 				sum += actualkoeff[koeff_index[m]] * semi_Basisfunktionen(nactual, koeff_index[m], koeff_testingpaths[lauf][nactual]);
-			//sum += koeff[koeff_index[m]] * semi_Basisfunktionen(n, koeff_index[m], x[n]);
-			ergebnis +=  max(0, payoff(x[nactual], nactual) - sum)/10000.;
+			ergebnis +=  max(0, payoff(koeff_testingpaths[lauf][nactual], nactual) - sum)/10000.;
 		}
-	deleteDoubleFeld(x,N,D);
+
 	deleteIntFeld(koeff_index,Mphi);
 	koeff_ergebnisse[threadnummer]=ergebnis;
 }
@@ -81,12 +78,10 @@ double AmericanOption::koeff_testen(double* koeff)
 	actualkoeff=koeff;
 	koeff_ergebnisse=DoubleFeld(Threadanzahl);
 	pthread_t threads[Threadanzahl];
-	//int* nummer=IntFeld(1);
-	for (int j = 0; j < Threadanzahl; j++){
-		//nummer[0]=j;
+
+	for (int j = 0; j < Threadanzahl; j++)
 		pthread_create(&threads[j], NULL, DELEGATE_koeff_testen_THREAD,  array_machen(j));
-	}
-	//deleteIntFeld(nummer,1);
+
 	for (int t = 0; t < Threadanzahl; t++)
 		pthread_join(threads[t], NULL);
 
@@ -100,12 +95,9 @@ double AmericanOption::koeff_testen(double* koeff)
 void AmericanOption::stuetzerwartung_ausrechnen(){
 	time_t time1 = time(NULL);
 	pthread_t threads[Threadanzahl];
-	//int* nummer=IntFeld(1);
-	for (int j = 0; j < Threadanzahl; j++){
-		//	nummer[0]=j;
+	for (int j = 0; j < Threadanzahl; j++)
 		pthread_create(&threads[j], NULL, DELEGATE_stuetzerwartung_ausrechnen_THREAD,  array_machen(j));
-	}
-	//deleteIntFeld(nummer,1);
+
 	for (int j = 0; j < Threadanzahl; j++)
 		pthread_join(threads[j], NULL);
 	if(verbose)printf("--------------Time forstuetzerwartung_ausrechnen:%ld seconds\n", time(NULL) - time1);
@@ -114,12 +106,8 @@ void AmericanOption::stuetzerwartung_ausrechnen(){
 void AmericanOption::semi_inner_paths_erzeugen(){
 	if (verbose)printf("innere Pfade erzeugen\n");
 	pthread_t threads[Threadanzahl];
-	//int* nummer=IntFeld(1);
-	for (int j = 0; j < Threadanzahl; j++){
-		//nummer[0]=j;
+	for (int j = 0; j < Threadanzahl; j++)
 		pthread_create(&threads[j], NULL, DELEGATE_inner_paths_erzeugen_THREAD,  array_machen(j));
-	}
-	//deleteIntFeld(nummer,1);
 	for (int j = 0; j < Threadanzahl; j++)
 		pthread_join(threads[j], NULL);
 }
@@ -129,7 +117,7 @@ void AmericanOption::semi() {
 	zeiger3 = this;
 	mlsm = true;
 	LSM_setting();
-
+	int faktor;
 	printf("LSM_k: %d,%d,%d,%d,%d\n",LSM_K0,LSM_K1,LSM_K2,LSM_K3,LSM_K4);
 
 	semi_testingpaths = 1000000; //Wie viele Testingpaths
@@ -139,19 +127,22 @@ void AmericanOption::semi() {
 		Mphi = 56; //56
 		J = 80; //80
 		M = 5000;
+		faktor=1;
 		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
 	}
 
 	if (D == 2) {
 		Mphi = 1712; //37   // Basisfunktionen
-		J = 200; //10*10;//49 // Stuetzpunkte
-		M = 5000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+		J = 100; //10*10;//49 // Stuetzpunkte
+		M = 10000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
+		faktor=1;
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 10
 	}
 
-	if (D >= 3) {
-		Mphi = 1+3+D*2+(D>2?D-1:0)+4+1+700;
+	if (D > 2) {
+		Mphi = 1+3+D*2+(D>2?D-1:0)+4+1+7000;
 		J = 200;
+		faktor=2;
 		M = 10000;
 		durchlaeufe = 1;
 	}
@@ -188,9 +179,11 @@ void AmericanOption::semi() {
 		printf("Zeitschritt %d\n", n);
 		nactual = n;
 
-		stuetzpunkte_setzen(nactual);
-		semi_inner_paths_erzeugen();
-		//stuetzpunkte_ausrichten();
+		if(D>2){
+			stuetzpunkte_setzen(nactual);
+			semi_inner_paths_erzeugen();
+			//		stuetzpunkte_ausrichten();
+		}
 
 		double** semi_betas_Feld = DoubleFeld(durchlaeufe, Mphi);
 		for (int i = 0; i < durchlaeufe; ++i) {
@@ -205,19 +198,19 @@ void AmericanOption::semi() {
 			{//Nicht ganz parallel
 				double min=10000000;
 				double* temp_koeff;
-				for(lauf=0;lauf<30;++lauf){
+				for(lauf=0;lauf<20;++lauf){
 					int number_active=0;
 					for(int j=0;j<J;++j)
-						if(rand()%2==0){
+						if(rand()%faktor==0){
 							stuetzstelle_active[j]=true;
 							number_active++;
 						}else
 							stuetzstelle_active[j]=false;
 
-					temp_koeff = LP_mitGLPK_Loesen(NULL, J);
+					temp_koeff = LP_mitGLPK_Loesen();
 
 					double testergebnis=koeff_testen(temp_koeff);
-					printf("Testergebnis %d (%d aktiv): %f\n",lauf,number_active,testergebnis);
+					printf("Optimierung %d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
 					if(testergebnis<min)
 					{
 						deleteDoubleFeld(semi_betas_Feld[i],Mphi);
@@ -229,62 +222,8 @@ void AmericanOption::semi() {
 				printf("Minimum: %f\n",min);
 
 			}else
-			{//mitForks
-				printf("mit Forks!");
-				int** ergebnispipe=IntFeld(20,2);
-				for(int z=0;z<20;++z)
-					pipe(ergebnispipe[z]);
-				int*** koeffpipe=IntFeld(20,Mphi,2);
-				for(int z=0;z<20;++z)
-					for(int m=0;m<Mphi;++m)
-						pipe(koeffpipe[z][m]);
-
-				for(int f=0;f<20;++f)
-					if (fork() == 0)
-					{
-						srand(f+getpid()+f+time(NULL));
-						int number_active=0;
-						stuetzstelle_active=new bool[J];
-						for(int j=0;j<J;++j)
-							if(rand()%2==0){
-								stuetzstelle_active[j]=true;
-								number_active++;
-							}else
-								stuetzstelle_active[j]=false;
-						double* temp_koeff = LP_mitGLPK_Loesen(NULL, J);
-						delete[] stuetzstelle_active;
-						double testergebnis=0;
-						//testergebnis=koeff_testen(temp_koeff);
-						//printf("Testergebnis %d (%d aktiv): %f\n",f,number_active,testergebnis);
-
-						for(int m=0;m<Mphi;m++)
-							InPipeSchreiben(koeffpipe[f][m],temp_koeff[m]); //Achtung Reihenfolge wichtig!
-						InPipeSchreiben(ergebnispipe[f],testergebnis);
-						deleteDoubleFeld(temp_koeff,Mphi);
-						deleteDoubleFeld(Matrix,J,Mphi);
-						deleteDoubleFeld(C,Mphi);
-						deleteDoubleFeld(semi_betas,N, Mphi);
-						deleteIntFeld(semi_betas_index ,N, Mphi);
-						deleteIntFeld(semi_betas_index_max,N);
-						deleteDoubleFeld(stuetzerwartung ,J);
-						deleteDoubleFeld(semi_inner_paths,durchlaeufe,J,M,N,D);
-						delete[] stuetzstelle_active;
-						exit(0);
-					}
-				double min=10000000;
-				for(int f=0;f<20;++f)
-				{
-					double erg=AusPipeLesen(ergebnispipe[f]);
-					if(erg<min)
-					{
-						min=erg;
-						for(int m=0;m<Mphi;++m)
-							semi_betas_Feld[i][m]=AusPipeLesen(koeffpipe[f][m]);
-					}
-				}
-				deleteIntFeld(ergebnispipe,Threadanzahl,2);
-				deleteIntFeld(koeffpipe,Threadanzahl,Mphi,2);
-				//printf("Minimum: %f\n",min);
+			{
+				printf("Error 735: not implemented yet\n");
 			}
 		}
 
@@ -486,7 +425,7 @@ void AmericanOption::stuetzpunkte_setzen(int n) {
 	//				}
 	//	}
 
-	if (D >= 2) {
+	if (D > 2) {
 		printf("zufaellige Stuetzstellen\n");
 		RNG generator;
 		double** X = DoubleFeld(N, D);
@@ -541,7 +480,7 @@ void AmericanOption::semi_testThread(int threadnummer) {
 			sum += semi_f(n, x[n]);
 		erg+=sum/(double)(durchlaeufe);
 	}
-	printf("ergeb %d, %f\n",threadnummer,erg);
+	//printf("ergeb %d, %f\n",threadnummer,erg);
 	semi_ergebnisse[threadnummer]=erg;
 	deleteDoubleFeld(x,N,D);
 }
@@ -553,18 +492,16 @@ void AmericanOption::semi_testing() {
 
 	pthread_t threads[Threadanzahl];
 	for (int j = 0; j < Threadanzahl; j++){
-		int nummer[1];
-		nummer[0]=j;
 		pthread_create(&threads[j], NULL, DELEGATE_semi_test, array_machen(j));
 	}
 	for (int j = 0; j < Threadanzahl; j++)
 		pthread_join(threads[j], NULL);
 
-	for (int j = 0; j < Threadanzahl; j++)
-		printf("ergebni %f\n",semi_ergebnisse[j]);
+	//	for (int j = 0; j < Threadanzahl; j++)
+	//		printf("ergebni %f\n",semi_ergebnisse[j]);
 
 	double erg=mean(semi_ergebnisse,Threadanzahl);
-deleteDoubleFeld(semi_ergebnisse,Threadanzahl);
+	deleteDoubleFeld(semi_ergebnisse,Threadanzahl);
 	printf("%f\n", erg);
 	ErgebnisAnhaengen(erg,(char*)"ergebnisse_semi.txt");
 
@@ -651,7 +588,7 @@ void AmericanOption::stuetzpunkte_ausgeben()
 	}
 }
 
-double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
+double* AmericanOption::LP_mitGLPK_Loesen() {
 	time_t time1 = time(NULL);
 	for (int m = 0; m < Mphi; ++m)
 		for (int j = 0; j < J; ++j)
@@ -669,14 +606,6 @@ double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
 
 	if(verbose)printf("Optimization aufstellen time:%ld seconds\n", time(NULL) - time1);
 
-	time1 = time(NULL);
-	if(index==NULL){
-		indexlaenge=Mphi;
-		index=new int[Mphi];
-		for(int m=0;m<Mphi;++m)
-			index[m]=m;
-	}
-
 	if (!verbose)glp_term_out(GLP_OFF);
 	glp_prob *lp;
 
@@ -689,34 +618,34 @@ double* AmericanOption::LP_mitGLPK_Loesen(int* index, int indexlaenge) {
 		glp_set_row_bnds(lp, j + 1, GLP_UP, 0.0, RS[j]);
 
 	//Zielfunktional uebergeben
-	glp_add_cols(lp, indexlaenge);
-	for (int m = 0; m < indexlaenge; ++m) {
+	glp_add_cols(lp, Mphi);
+	for (int m = 0; m < Mphi; ++m) {
 		glp_set_col_bnds(lp, m + 1, GLP_FR, 0.0, 0.0);
-		glp_set_obj_coef(lp, m + 1, C[index[m]]);
+		glp_set_obj_coef(lp, m + 1, C[m]);
 	}
 
 
 	//Matrixeintraege uebergeben
 	//printf("indexlaenge %d\n",indexlaenge);
-	int* ia=new int[1 + J * indexlaenge];
-	int* ja=new int[1 + J * indexlaenge];
-	double* ar=new double[1 + J * indexlaenge];
+	int* ia=new int[1 + J * Mphi];
+	int* ja=new int[1 + J * Mphi];
+	double* ar=new double[1 + J * Mphi];
 
 	int zaehler = 1;
 	for (int i = 0; i < J; ++i)
-		for (int j = 0; j < indexlaenge; j++) {
+		for (int j = 0; j < Mphi; j++) {
 			ia[zaehler] = i + 1;
 			ja[zaehler] = j + 1;
-			ar[zaehler] = Matrix[i][index[j]];
+			ar[zaehler] = Matrix[i][j];
 			zaehler++;
 		}
 
-	glp_load_matrix(lp, indexlaenge*J, ia, ja, ar);
+	glp_load_matrix(lp, Mphi*J, ia, ja, ar);
 	glp_simplex(lp, NULL);
 
 	//Loesung auslesen
-	double* x = DoubleFeld(indexlaenge);
-	for (int m = 0; m < indexlaenge; ++m)x[m] = glp_get_col_prim(lp, m + 1);
+	double* x = DoubleFeld(Mphi);
+	for (int m = 0; m < Mphi; ++m)x[m] = glp_get_col_prim(lp, m + 1);
 
 	glp_delete_prob(lp);
 	if(verbose)printf("Optimization time:%ld seconds\n", time(NULL) - time1);
@@ -1426,3 +1355,66 @@ void AmericanOption::semi_mehrere_S0_testen() {
 //			//printf("Minimum: %f\n",min);
 //
 //
+
+
+
+//mitForks
+//				printf("mit Forks!");
+//				int** ergebnispipe=IntFeld(20,2);
+//				for(int z=0;z<20;++z)
+//					pipe(ergebnispipe[z]);
+//				int*** koeffpipe=IntFeld(20,Mphi,2);
+//				for(int z=0;z<20;++z)
+//					for(int m=0;m<Mphi;++m)
+//						pipe(koeffpipe[z][m]);
+//				int pid;
+//				for(int f=0;f<20;++f)
+//				{
+//					pid=fork();
+//					if (pid == 0)
+//					{
+//						srand(f+getpid()+f+time(NULL));
+//						int number_active=0;
+//						stuetzstelle_active=new bool[J];
+//						for(int j=0;j<J;++j)
+//							if(rand()%Faktor==0){
+//								stuetzstelle_active[j]=true;
+//								number_active++;
+//							}else
+//								stuetzstelle_active[j]=false;
+//						double* temp_koeff =DoubleFeld(Mphi);
+//						temp_koeff=LP_mitGLPK_Loesen(NULL, J);
+//						delete[] stuetzstelle_active;
+//						double testergebnis=0;
+//						//testergebnis=koeff_testen(temp_koeff);
+//						//printf("Testergebnis %d (%d aktiv): %f\n",f,number_active,testergebnis);
+//
+//						for(int m=0;m<Mphi;m++)
+//							InPipeSchreiben(koeffpipe[f][m],temp_koeff[m]); //Achtung Reihenfolge wichtig!
+//						InPipeSchreiben(ergebnispipe[f],testergebnis);
+//						//						deleteDoubleFeld(temp_koeff,Mphi);
+//						//						deleteDoubleFeld(Matrix,J,Mphi);
+//						//						deleteDoubleFeld(C,Mphi);
+//						//						deleteDoubleFeld(semi_betas,N, Mphi);
+//						//						deleteIntFeld(semi_betas_index ,N, Mphi);
+//						//						deleteIntFeld(semi_betas_index_max,N);
+//						//						deleteDoubleFeld(stuetzerwartung ,J);
+//						//						deleteDoubleFeld(semi_inner_paths,durchlaeufe,J,M,N,D);
+//						//						delete[] stuetzstelle_active;
+//						exit(0);
+//					}
+//				}
+//				double min=10000000;
+//				for(int f=0;f<20;++f)
+//				{
+//					double erg=AusPipeLesen(ergebnispipe[f]);
+//					if(erg<min)
+//					{
+//						min=erg;
+//						for(int m=0;m<Mphi;++m)
+//							semi_betas_Feld[i][m]=AusPipeLesen(koeffpipe[f][m]);
+//					}
+//				}
+//				deleteIntFeld(ergebnispipe,Threadanzahl,2);
+//				deleteIntFeld(koeffpipe,Threadanzahl,Mphi,2);
+//				//printf("Minimum: %f\n",min);

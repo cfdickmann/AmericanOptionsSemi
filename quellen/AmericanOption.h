@@ -219,7 +219,7 @@ public:
 	int * semi_betas_index_max;
 	//        double* LP_mitR_Loesen();
 	//        double* LP_mitALGLIB_Loesen();
-	double* LP_mitGLPK_Loesen(int* index, int indexlaenge);
+	double* LP_mitGLPK_Loesen();
 	void semi_testing();
 	void semi_testThread(int threadnummer);
 	int semi_testingpaths;
