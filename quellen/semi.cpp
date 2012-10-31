@@ -198,7 +198,7 @@ void AmericanOption::semi() {
 			{//Nicht ganz parallel
 				double min=10000000;
 				double* temp_koeff;
-				for(lauf=0;lauf<20;++lauf){
+				for(lauf=0;lauf<50;++lauf){
 					int number_active=0;
 					for(int j=0;j<J;++j)
 						if(rand()%faktor==0){
@@ -241,27 +241,8 @@ void AmericanOption::semi() {
 			}
 		semi_betas_index_max[n] = indexlauf;
 
-		//		//qualitaet pruefen
-		//		double* abstaende=DoubleFeld(J);
-		//		for(int j=0;j<J;++j){
-		//			abstaende[j]=stuetzerwartung[j]-linearCombinationOfBasis(nactual,stuetzpunkte[j]);
-		//			//if(abstaende[j]==0)PfadeNeuMachen[j]=1;elsePfade
-		//		}
-		//		int* index=BubbleSort(abstaende,J);
-		//		if(verbose)
-		//			for(int j=0;j<J;++j)
-		//			{
-		//				printf("p(");
-		//				for(int d=0;d<D;++d)
-		//					printf("%.3lf, ",stuetzpunkte[index[j]][d]);
-		//				printf("): abstaende %f\n",abstaende[index[j]]);
-		//			}
-		//		deleteDoubleFeld(abstaende,J);
-		//		deleteIntFeld(index,J);
-
 		printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
-		//		if (verbose)semi_ergebnisse_ausgeben();
-
+				if (verbose)semi_ergebnisse_ausgeben();
 		deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
 	}
 
@@ -368,7 +349,7 @@ double AmericanOption::semi_f(int zeit, double* x) {
             //----------------------------
             //	return max(0, payoff(x,zeit) -european_MaxCall_ND(x,zeit*dt,zeit*dt+dt));
             //printf("unterschied: %f\n",linearCombinationOfBasis(zeit,x) - LSM_C_estimated(x,zeit));
-            //	return max(0, payoff(x,zeit) - LSM_C_estimated(x,zeit)); //TODO
+            //	return max(0, payoff(x,zeit) - LSM_C_estimated(x,zeit));
             //		return max(0, payoff(x,zeit) - E);
             //return max(0, linearCombinationOfBasis(zeit,semi_betas[zeit],x));
 	 */
@@ -403,14 +384,11 @@ void AmericanOption::stuetzpunkte_setzen(int n) {
 
 	if (D == 2) {
 		int WJ = (int) (sqrt(J));
-		//int WJ=7;
 		for (int i = 0; i < WJ; ++i)
 			for (int k = 0; k < WJ; ++k) {
 				stuetzpunkte[i * WJ + k][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
 				stuetzpunkte[i * WJ + k][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
 			}
-		//stuetzpunkte[30][0]=110;
-		//stuetzpunkte[30][1]=60;
 	}
 
 	//	if (D == 3) {
@@ -1418,3 +1396,22 @@ void AmericanOption::semi_mehrere_S0_testen() {
 //				deleteIntFeld(ergebnispipe,Threadanzahl,2);
 //				deleteIntFeld(koeffpipe,Threadanzahl,Mphi,2);
 //				//printf("Minimum: %f\n",min);
+
+//		//qualitaet pruefen
+//		double* abstaende=DoubleFeld(J);
+//		for(int j=0;j<J;++j){
+//			abstaende[j]=stuetzerwartung[j]-linearCombinationOfBasis(nactual,stuetzpunkte[j]);
+//			//if(abstaende[j]==0)PfadeNeuMachen[j]=1;elsePfade
+//		}
+//		int* index=BubbleSort(abstaende,J);
+//		if(verbose)
+//			for(int j=0;j<J;++j)
+//			{
+//				printf("p(");
+//				for(int d=0;d<D;++d)
+//					printf("%.3lf, ",stuetzpunkte[index[j]][d]);
+//				printf("): abstaende %f\n",abstaende[index[j]]);
+//			}
+//		deleteDoubleFeld(abstaende,J);
+//		deleteIntFeld(index,J);
+
