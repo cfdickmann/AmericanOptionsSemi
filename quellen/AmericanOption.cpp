@@ -72,6 +72,10 @@ double AmericanOption::max(double d1, double d2) {
 }
 
 double AmericanOption::payoff(double* x, int time) {
+	return payoff(x,time,D);
+}
+
+double AmericanOption::payoff(double* x, int time, int D) {
 	if (option == MIN_PUT)
 		return max(Strike - Min(x, D), 0) * exp(-r * dt * (double) (time)); //Min Put
 	if (option == MAX_CALL)

@@ -17,6 +17,15 @@ using namespace std;
 
 AmericanOption* zeiger3;
 
+double * koeff_ergebnisse;
+double * actualkoeff;
+
+void* DELEGATE_koeff_testen_THREAD(void* data) {
+	zeiger3->koeff_testen_THREAD(((int*)data)[0]);
+	pthread_exit(NULL);
+	return NULL;
+}
+
 void* DELEGATE_stuetzerwartung_ausrechnen_THREAD(void* data) {
 	zeiger3->stuetzerwartung_ausrechnenThread(((int*)data)[0]);
 	pthread_exit(NULL);
@@ -38,39 +47,32 @@ void AmericanOption::inner_paths_erzeugen_THREAD(int threadnummer){
 					Pfadgenerieren(semi_inner_paths[u][j][m], 0, stuetzpunkte[j],&generator);
 }
 
-double * koeff_ergebnisse;
-double * actualkoeff;
-
-void* DELEGATE_koeff_testen_THREAD(void* data) {
-	zeiger3->koeff_testen_THREAD(((int*)data)[0]);
-	pthread_exit(NULL);
-	return NULL;
-}
-
 void AmericanOption::koeff_testen_THREAD(int threadnummer)
 {
 	double ergebnis=0;
 	int* koeff_index = IntFeld(Mphi);
 	int indexlauf = 0;
-	for (int m = 0; m < Mphi; ++m)
-		if (actualkoeff[m] != 0) {
-			koeff_index[indexlauf] = m;
-			indexlauf++;
-		}
+
+	if(actualkoeff!=NULL)
+		for (int m = 0; m < Mphi; ++m)
+			if (actualkoeff[m] != 0) {
+				koeff_index[indexlauf] = m;
+				indexlauf++;
+			}
 
 	for (int lauf = 0; lauf < 10000; ++lauf)
 		if(lauf%Threadanzahl==threadnummer)
 		{
 			double sum = 0;
-			for (int m = 0; m < indexlauf; ++m)
-				sum += actualkoeff[koeff_index[m]] * semi_Basisfunktionen(nactual, koeff_index[m], koeff_testingpaths[lauf][nactual]);
+			if(actualkoeff!=NULL)
+				for (int m = 0; m < indexlauf; ++m)
+					sum += actualkoeff[koeff_index[m]] * semi_Basisfunktionen(nactual, koeff_index[m], koeff_testingpaths[lauf][nactual]);
 			ergebnis +=  max(0, payoff(koeff_testingpaths[lauf][nactual], nactual) - sum)/10000.;
 		}
-
+	//printf("koeff test %d: %f\n",threadnummer,ergebnis);
 	deleteIntFeld(koeff_index,Mphi);
 	koeff_ergebnisse[threadnummer]=ergebnis;
 }
-
 
 double AmericanOption::koeff_testen(double* koeff)
 {
@@ -78,12 +80,14 @@ double AmericanOption::koeff_testen(double* koeff)
 	actualkoeff=koeff;
 	koeff_ergebnisse=DoubleFeld(Threadanzahl);
 	pthread_t threads[Threadanzahl];
-
-	for (int j = 0; j < Threadanzahl; j++)
-		pthread_create(&threads[j], NULL, DELEGATE_koeff_testen_THREAD,  array_machen(j));
-
+	int* nummern=IntFeld(Threadanzahl);
+	for (int t = 0; t < Threadanzahl; t++){
+		nummern[t]=t;
+		pthread_create(&threads[t], NULL, DELEGATE_koeff_testen_THREAD,  &(nummern[t]));
+	}
 	for (int t = 0; t < Threadanzahl; t++)
 		pthread_join(threads[t], NULL);
+	deleteIntFeld(nummern,Threadanzahl);
 
 	if(verbose)printf("--------------Time for koeff_testing:%ld seconds\n", time(NULL) - time1);
 	double result=summe(koeff_ergebnisse,Threadanzahl);
@@ -95,32 +99,40 @@ double AmericanOption::koeff_testen(double* koeff)
 void AmericanOption::stuetzerwartung_ausrechnen(){
 	time_t time1 = time(NULL);
 	pthread_t threads[Threadanzahl];
-	for (int j = 0; j < Threadanzahl; j++)
-		pthread_create(&threads[j], NULL, DELEGATE_stuetzerwartung_ausrechnen_THREAD,  array_machen(j));
-
-	for (int j = 0; j < Threadanzahl; j++)
-		pthread_join(threads[j], NULL);
+	int* nummern=IntFeld(Threadanzahl);
+	for (int t = 0; t < Threadanzahl; t++){
+		nummern[t]=t;
+		pthread_create(&threads[t], NULL, DELEGATE_stuetzerwartung_ausrechnen_THREAD,  &(nummern[t]));
+	}
+	for (int t = 0; t < Threadanzahl; t++)
+		pthread_join(threads[t], NULL);
+	deleteIntFeld(nummern,Threadanzahl);
 	if(verbose)printf("--------------Time forstuetzerwartung_ausrechnen:%ld seconds\n", time(NULL) - time1);
 }
 
 void AmericanOption::semi_inner_paths_erzeugen(){
 	if (verbose)printf("innere Pfade erzeugen\n");
 	pthread_t threads[Threadanzahl];
+	int* nummern=IntFeld(Threadanzahl);
 	for (int j = 0; j < Threadanzahl; j++)
-		pthread_create(&threads[j], NULL, DELEGATE_inner_paths_erzeugen_THREAD,  array_machen(j));
+	{
+		nummern[j]=j;
+		pthread_create(&threads[j], NULL, DELEGATE_inner_paths_erzeugen_THREAD,  &(nummern[j]));
+	}
 	for (int j = 0; j < Threadanzahl; j++)
 		pthread_join(threads[j], NULL);
+	deleteIntFeld(nummern,Threadanzahl);
 }
-
 
 void AmericanOption::semi() {
 	zeiger3 = this;
 	mlsm = true;
+
 	LSM_setting();
 	int faktor;
 	printf("LSM_k: %d,%d,%d,%d,%d\n",LSM_K0,LSM_K1,LSM_K2,LSM_K3,LSM_K4);
 
-	semi_testingpaths = 1000000; //Wie viele Testingpaths
+	semi_testingpaths = 1e6; //Wie viele Testingpaths
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
 
 	if (D == 1) {
@@ -140,7 +152,7 @@ void AmericanOption::semi() {
 	}
 
 	if (D > 2) {
-		Mphi = 1+3+D*2+(D>2?D-1:0)+4+1+7000;
+		Mphi = 1+3+D*2+(D>2?D-1:0)+/*4*/+1+7000;
 		J = 200;
 		faktor=2;
 		M = 10000;
@@ -175,6 +187,10 @@ void AmericanOption::semi() {
 	Matrix = DoubleFeld(J, Mphi);
 	C = DoubleFeld(Mphi);
 	RS = stuetzerwartung;
+
+	nactual=N-1;
+	double training=koeff_testen(NULL);
+
 	for (int n = N - 2; n >= 0; --n) {
 		printf("Zeitschritt %d\n", n);
 		nactual = n;
@@ -192,13 +208,12 @@ void AmericanOption::semi() {
 			//Stuetzerwartung ausrechnen
 			stuetzerwartung_ausrechnen();
 			if (verbose)stuetzpunkte_ausgeben();
-
-			bool mitForks=false;
-			if(!mitForks)
+			double* temp_koeff;
+			//bool mitForks=true;
+			//if(!mitForks)
 			{//Nicht ganz parallel
 				double min=10000000;
-				double* temp_koeff;
-				for(lauf=0;lauf<50;++lauf){
+				for(lauf=0;lauf<100;++lauf){
 					int number_active=0;
 					for(int j=0;j<J;++j)
 						if(rand()%faktor==0){
@@ -220,13 +235,77 @@ void AmericanOption::semi() {
 						deleteDoubleFeld(temp_koeff,Mphi);
 				}
 				printf("Minimum: %f\n",min);
-
-			}else
-			{
-				printf("Error 735: not implemented yet\n");
+				training+=min;
 			}
-		}
 
+			//else
+			if(false)
+			{// mit Forks
+				//printf("Error 735: not implemented yet\n");
+				printf("mit Forks!\n");
+				int** ergebnispipe=IntFeld(10,2);
+				for(int z=0;z<10;++z)
+					pipe(ergebnispipe[z]);
+				int** koeffpipe=IntFeld(10*Mphi,2);
+				for(int z=0;z<10*Mphi;++z)
+						pipe(koeffpipe[z]);
+
+				for(int t=0;t<10;++t)
+				{
+					int pid = fork();
+					if (pid == 0)
+					{
+						srand(time(NULL)+pid+rand()+t);
+						int number_active=0;
+						for(int j=0;j<J;++j)
+							if(rand()%faktor==0){
+								stuetzstelle_active[j]=true;
+								number_active++;
+							}else
+								stuetzstelle_active[j]=false;
+						temp_koeff = LP_mitGLPK_Loesen();
+						for(int m=0;m<Mphi;++m)
+												printf("nurmal %f \n",temp_koeff[m]);
+						double testergebnis=koeff_testen(temp_koeff);
+						printf("Optimierung %d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
+
+						for(int m=0;m<Mphi;++m)
+							InPipeSchreiben(koeffpipe[10*t+m],temp_koeff[m]);
+
+						InPipeSchreiben(ergebnispipe[t],testergebnis);
+						exit (0);
+					}
+					else if (pid < 0)
+					{
+						fprintf (stderr, "Error 348");
+						exit(1);
+					}
+				}
+				double min=1000000000;
+				for(int t=0;t<10;++t)
+				{
+					double e=AusPipeLesen(ergebnispipe[t]);
+					double* min_koeff=DoubleFeld(Mphi);
+					for(int m=0;m<Mphi;++m)
+						min_koeff[m]=AusPipeLesen(koeffpipe[10*t+m]);
+					for(int m=0;m<Mphi;++m)
+											printf("nurmal %f \n",min_koeff[m]);
+					exit(0);
+					if(e<min){
+							for(int m=0;m<Mphi;++m)
+								semi_betas_Feld[i][m]=min_koeff[m];
+						min=e;
+					}
+					deleteDoubleFeld(min_koeff,Mphi);
+				}
+				printf("fork minimum %f \n",min);
+			}
+
+
+
+
+
+		}
 		//Durchschnitt als Ergebniss nehmen
 		for (int m = 0; m < Mphi; ++m) {
 			semi_betas[n][m] = 0;
@@ -242,12 +321,14 @@ void AmericanOption::semi() {
 		semi_betas_index_max[n] = indexlauf;
 
 		printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
-				if (verbose)semi_ergebnisse_ausgeben();
+		if (verbose)semi_ergebnisse_ausgeben();
 		deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
+		//exit(0);
 	}
 
+	printf("Training %f\n",training);
 	semi_testing();
-
+	ErgebnisAnhaengen(training,(char*)"ergebnisse_semi_training.txt");
 	deleteDoubleFeld(Matrix,J,Mphi);
 	deleteDoubleFeld(C,Mphi);
 	deleteDoubleFeld(semi_betas,N, Mphi);
@@ -331,28 +412,7 @@ double Min(double x, double y, double z) {
 double AmericanOption::semi_f(int zeit, double* x) {
 	if (zeit == N - 1)
 		return payoff(x, zeit);
-	//----------------------------
-	//	if(nactual==N-1)
-	//int dmax = argMax(x, D);
-	//	dmax = 0;
 	return max(0, payoff(x, zeit) - linearCombinationOfBasis(zeit, x));
-
-	//return max(0, payoff(x,zeit) - linearCombinationOfBasis(zeit,x) );
-	/*
-    //	else
-            -------------
-            //			return Min(
-            //					max(payoff(x,zeit) - european_MaxCall_ND(x,(double)zeit*dt,(double)zeit*dt+dt),0),
-            //					max(payoff(x,zeit) - european_MaxCall_ND(x,(double)zeit*dt,T)                 ,0),
-            //					max(payoff(x,zeit) - linearCombinationOfBasis(zeit,x)                         ,0)
-            //			);
-            //----------------------------
-            //	return max(0, payoff(x,zeit) -european_MaxCall_ND(x,zeit*dt,zeit*dt+dt));
-            //printf("unterschied: %f\n",linearCombinationOfBasis(zeit,x) - LSM_C_estimated(x,zeit));
-            //	return max(0, payoff(x,zeit) - LSM_C_estimated(x,zeit));
-            //		return max(0, payoff(x,zeit) - E);
-            //return max(0, linearCombinationOfBasis(zeit,semi_betas[zeit],x));
-	 */
 }
 
 void AmericanOption::stuetzerwartung_ausrechnenThread(int k) {
@@ -391,17 +451,17 @@ void AmericanOption::stuetzpunkte_setzen(int n) {
 			}
 	}
 
-	//	if (D == 3) {
-	//		int WJ = (int) (ceil(pow(J, 1. / 3.)));
-	//		//            printf("sfd %d\n",WJ);exit(0);
-	//		for (int i = 0; i < WJ; ++i)
-	//			for (int k = 0; k < WJ; ++k)
-	//				for (int j = 0; j < WJ; ++j) {
-	//					stuetzpunkte[i * WJ * WJ + k * WJ + j][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
-	//					stuetzpunkte[i * WJ * WJ + k * WJ + j][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
-	//					stuetzpunkte[i * WJ * WJ + k * WJ + j][2] = Strike * (0.01 + 2 * (double) (j) / (double) (WJ));
-	//				}
-	//	}
+	//		if (D == 3) {
+	//			int WJ = (int) (ceil(pow(J, 1. / 3.)));
+	//
+	//			for (int i = 0; i < WJ; ++i)
+	//				for (int k = 0; k < WJ; ++k)
+	//					for (int j = 0; j < WJ; ++j) {
+	//						stuetzpunkte[i * WJ * WJ + k * WJ + j][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
+	//						stuetzpunkte[i * WJ * WJ + k * WJ + j][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
+	//						stuetzpunkte[i * WJ * WJ + k * WJ + j][2] = Strike * (0.01 + 2 * (double) (j) / (double) (WJ));
+	//					}
+	//		}
 
 	if (D > 2) {
 		printf("zufaellige Stuetzstellen\n");
@@ -451,109 +511,37 @@ void AmericanOption::semi_testThread(int threadnummer) {
 	srand(seed);
 	int durchlaeufe = (int)(double)(semi_testingpaths) / (double)(Threadanzahl);
 	RNG generator;
-	for (int m = 0; m < durchlaeufe; ++m) {
-		Pfadgenerieren(x, 0,X0,&generator);
-		double sum = 0;
-		for (int n = 0; n < N; ++n)
-			sum += semi_f(n, x[n]);
-		erg+=sum/(double)(durchlaeufe);
-	}
-	//printf("ergeb %d, %f\n",threadnummer,erg);
-	semi_ergebnisse[threadnummer]=erg;
+	for (int n = 0; n < N; ++n)
+		for (int m = 0; m < durchlaeufe; ++m) {
+			Pfadgenerieren(x, 0,X0,&generator);
+			erg += semi_f(n, x[n]);
+		}
+	semi_ergebnisse[threadnummer]=erg/(double)(durchlaeufe);
 	deleteDoubleFeld(x,N,D);
 }
 
 void AmericanOption::semi_testing() {
 	printf("Testing\n");
-
 	semi_ergebnisse=DoubleFeld(Threadanzahl);
 
+	int* nummern=IntFeld(Threadanzahl);
 	pthread_t threads[Threadanzahl];
 	for (int j = 0; j < Threadanzahl; j++){
-		pthread_create(&threads[j], NULL, DELEGATE_semi_test, array_machen(j));
+		nummern[j]=j;
+		pthread_create(&threads[j], NULL, DELEGATE_semi_test,&(nummern[j]));
 	}
 	for (int j = 0; j < Threadanzahl; j++)
 		pthread_join(threads[j], NULL);
+	deleteIntFeld(nummern,Threadanzahl);
 
-	//	for (int j = 0; j < Threadanzahl; j++)
-	//		printf("ergebni %f\n",semi_ergebnisse[j]);
+	//if(verbose)
+	for (int j = 0; j < Threadanzahl; j++)
+		printf("ergebni %f\n",semi_ergebnisse[j]);
 
 	double erg=mean(semi_ergebnisse,Threadanzahl);
 	deleteDoubleFeld(semi_ergebnisse,Threadanzahl);
 	printf("%f\n", erg);
 	ErgebnisAnhaengen(erg,(char*)"ergebnisse_semi.txt");
-
-	//---------------
-	/*
-    for (int testlauf = 0; testlauf < 10; ++testlauf) {
-        int ergebnispipe[Threadanzahl][2];
-        for (int z = 0; z < Threadanzahl; ++z)
-            pipe(ergebnispipe[z]);
-
-        int pid;
-        for (int t = 0; t < Threadanzahl; ++t) {
-            pid = fork();
-            if (pid == 0) {
-                double** x = DoubleFeld(N, D);
-                double** wdiff = DoubleFeld(N, D);
-                double** sprue = DoubleFeld(N, D);
-
-                int seed = time(NULL) + t + MT() + getpid();
-                if (testlauf > 0)seed += (int) (testergs[testlauf - 1]*10000);
-                MT.seed(seed);
-                double erg = 0;
-                int durchlaeufe = 100000 / Threadanzahl; //Achtung
-                for (int m = 0; m < durchlaeufe; ++m) {
-                    for (int n = 0; n < N; ++n)
-                        for (int j = 0; j < D; ++j) {
-                            if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * nextGaussian();
-                            else wdiff[n][j] = -wdiff[n][j]; //antithetics
-                            sprue[n][j] = 0;
-                        }
-                    Pfadgenerieren(x, wdiff, sprue);
-                    double sum = 0;
-                    for (int n = 0; n < N; ++n)
-                        if (Mphi > 1) {
-                            sum += semi_f(n, x[n]);
-                        } else { //if(Mphi==1)
-                            if (n == N - 1)
-                                sum += max(payoff(x[n], n), 0);
-                            else {
-                                double d[5];
-                                d[0] = europeanValue(x[n], (double) n*dt, (double) n * dt + dt);
-                                d[1] = europeanValue(x[n], (double) n*dt, T);
-//                                d[2] = europeanValue(x[n], (double) n*dt, T * 0.8 + (double) n * dt * 0.2);
-//                                d[3] = europeanValue(x[n], (double) n*dt, T * 0.6 + (double) n * dt * 0.3);
-//                                d[4] = europeanValue(x[n], (double) n*dt, T * 0.3 + (double) n * dt * 0.7);
-//                                sum += max(payoff(x[n], n) - max(max(max(max(d[0], d[1]), d[2]), d[3]), d[4]), 0);
-                            sum += max(payoff(x[n], n) - max(d[0], d[1]),0);
-                            }
-                        }
-                    erg += sum / (double) durchlaeufe;
-                }
-                InPipeSchreiben(ergebnispipe[t], erg);
-                exit(0);
-            }
-        }
-        double erg = 0;
-        double ergebnisse[Threadanzahl];
-        for (int f = 0; f < Threadanzahl; ++f) {
-            ergebnisse[f] = AusPipeLesen(ergebnispipe[f]);
-            erg += ergebnisse[f] / (double) (Threadanzahl);
-        }
-        testergs[testlauf] = erg;
-        double zwischen = 0;
-        for (int i = 0; i <= testlauf; ++i)
-            zwischen += testergs[i] / double(testlauf + 1);
-        printf("Zwischenergebnis %d: %f (bei %d Pfaden)\r", testlauf, zwischen, 100000 * (testlauf + 1));
-
-    }
-    double erg = 0;
-    for (int i = 0; i < 10; ++i)
-        erg += testergs[i]*0.1;*/
-	//
-	////    printf("\n\nGesamtergebnis: %f\n", erg);
-	//    ErgebnisAnhaengen(erg);
 }
 
 void AmericanOption::stuetzpunkte_ausgeben()
@@ -1335,6 +1323,77 @@ void AmericanOption::semi_mehrere_S0_testen() {
 //
 
 
+//---------------
+/*
+for (int testlauf = 0; testlauf < 10; ++testlauf) {
+    int ergebnispipe[Threadanzahl][2];
+    for (int z = 0; z < Threadanzahl; ++z)
+        pipe(ergebnispipe[z]);
+
+    int pid;
+    for (int t = 0; t < Threadanzahl; ++t) {
+        pid = fork();
+        if (pid == 0) {
+            double** x = DoubleFeld(N, D);
+            double** wdiff = DoubleFeld(N, D);
+            double** sprue = DoubleFeld(N, D);
+
+            int seed = time(NULL) + t + MT() + getpid();
+            if (testlauf > 0)seed += (int) (testergs[testlauf - 1]*10000);
+            MT.seed(seed);
+            double erg = 0;
+            int durchlaeufe = 100000 / Threadanzahl; //Achtung
+            for (int m = 0; m < durchlaeufe; ++m) {
+                for (int n = 0; n < N; ++n)
+                    for (int j = 0; j < D; ++j) {
+                        if (m % 2 == 0)wdiff[n][j] = sqrt(dt) * nextGaussian();
+                        else wdiff[n][j] = -wdiff[n][j]; //antithetics
+                        sprue[n][j] = 0;
+                    }
+                Pfadgenerieren(x, wdiff, sprue);
+                double sum = 0;
+                for (int n = 0; n < N; ++n)
+                    if (Mphi > 1) {
+                        sum += semi_f(n, x[n]);
+                    } else { //if(Mphi==1)
+                        if (n == N - 1)
+                            sum += max(payoff(x[n], n), 0);
+                        else {
+                            double d[5];
+                            d[0] = europeanValue(x[n], (double) n*dt, (double) n * dt + dt);
+                            d[1] = europeanValue(x[n], (double) n*dt, T);
+//                                d[2] = europeanValue(x[n], (double) n*dt, T * 0.8 + (double) n * dt * 0.2);
+//                                d[3] = europeanValue(x[n], (double) n*dt, T * 0.6 + (double) n * dt * 0.3);
+//                                d[4] = europeanValue(x[n], (double) n*dt, T * 0.3 + (double) n * dt * 0.7);
+//                                sum += max(payoff(x[n], n) - max(max(max(max(d[0], d[1]), d[2]), d[3]), d[4]), 0);
+                        sum += max(payoff(x[n], n) - max(d[0], d[1]),0);
+                        }
+                    }
+                erg += sum / (double) durchlaeufe;
+            }
+            InPipeSchreiben(ergebnispipe[t], erg);
+            exit(0);
+        }
+    }
+    double erg = 0;
+    double ergebnisse[Threadanzahl];
+    for (int f = 0; f < Threadanzahl; ++f) {
+        ergebnisse[f] = AusPipeLesen(ergebnispipe[f]);
+        erg += ergebnisse[f] / (double) (Threadanzahl);
+    }
+    testergs[testlauf] = erg;
+    double zwischen = 0;
+    for (int i = 0; i <= testlauf; ++i)
+        zwischen += testergs[i] / double(testlauf + 1);
+    printf("Zwischenergebnis %d: %f (bei %d Pfaden)\r", testlauf, zwischen, 100000 * (testlauf + 1));
+
+}
+double erg = 0;
+for (int i = 0; i < 10; ++i)
+    erg += testergs[i]*0.1;*/
+//
+////    printf("\n\nGesamtergebnis: %f\n", erg);
+//    ErgebnisAnhaengen(erg);
 
 //mitForks
 //				printf("mit Forks!");

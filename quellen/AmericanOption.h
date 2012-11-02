@@ -28,14 +28,14 @@
 #include <stdlib.h>
 #include <cstring>
 
-#define MAX_CALL 1
-#define MIN_PUT 0
+#define MAX_CALL 1  //bedeutet Put im Fall D=1
+#define MIN_PUT 0   //bedeutet Put im Fall D=1
 #define ITO 1
 #define EULER 2
 #define CIR 3
 #define JDI 4
 #define MTYP double    //Datentyp double oder float fuer die Speicherung angeben
-//static int MI;
+
 //using namespace alglib;
 
 namespace std {
@@ -122,6 +122,7 @@ public:
 	double nextGaussian();
 	int Poisson(double theta);
 	double payoff(double* x, int time);
+	double payoff(double* x, int time, int D);
 	double Upayoff(double* x, int time);
 	double unif();
 	double EuropeanPut1D_discounted(double t, double T, double S, double Strike);
@@ -243,6 +244,9 @@ public:
 	double* stuetzerwartung;
 	void StuetzErwartung(int t);
 	double semi_Basisfunktionen(int zeit, int j, double* x);
+	double semi_Basisfunktionen1D(int zeit, int j, double* x);
+	double semi_Basisfunktionen2D(int zeit, int j, double* x);
+	double semi_BasisfunktionenHigherD(int zeit, int j, double* x);
 	void semi();
 	//	void Test();
 	int nactual;

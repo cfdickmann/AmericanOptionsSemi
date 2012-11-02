@@ -75,110 +75,110 @@ void AmericanOption::Daten(){
 		K5=0;
 		M=5000;
 	}
-
-	if(Example==4){					//Cuffignals Example
-		PfadModell=ITO;
-		option=MIN_PUT;
-		delta=0;
-		X0[0] = 10;
-		Strike = X0[0];
-		r = 0.05;
-		sigma[0] = 0.2;
-		T = 1;
-		Testing_Dates=128;
-		Training_Dates=128;
-		N = 128;
-		D=1;
-		K1=15;
-		K2=15;
-		K3=15;
-		K4=15;
-		K5=0;
-		M=8000;
-	}
-
-	if(Example==6){					//CIR Example
-		PfadModell=CIR;
-		option=MAX_CALL;
-		delta=0;
-		kappa=0.5;
-		theta=1.5;
-		D=2;
-		for(int j=0;j<D;++j)
-		{
-			X0[j]= theta;
-			sigma[j]=0.2;
-		}
-		Strike = 1.;
-		r = 0.05;
-		T = 1;
-		Testing_Dates=10;
-		Training_Dates=10;
-		N = 201;
-		K1=15;
-		K2=0;
-		K3=0;
-		K4=0;
-		K5=0;
-		M=15000;
-	}
-
-	if(Example==7){					//firth
-		PfadModell=ITO;
-		eta=0;
-		option=MIN_PUT;
-		delta=0;
-		lambdaJump=1;
-		D=1;
-		for(int j=0;j<D;++j)
-		{
-			X0[j]= 36.;
-			sigma[j]=0.2;
-		}
-		Strike = 40.;
-		r = 0.06;
-		T = 2;
-		Testing_Dates=10;
-		Training_Dates=10;
-		N = 401;
-		//		K1=K2=K3=K4=15;
-		K1=10;
-		K2=10;
-		K3=10;
-		K4=10;
-		//		K5=J*3;
-		K5=0;
-		M=20000;
-	}
-
-	if(Example==8){					//Jump diffusion
-		PfadModell=JDI;
-		eta=0.1;
-		option=MAX_CALL;
-		delta=0.1;
-		lambdaJump=1;
-		D=10;
-		for(int j=0;j<D;++j)
-		{
-			X0[j]= 100.;
-			sigma[j]=0.2;
-		}
-		Strike = 100.;
-		r = 0.05;
-		T = 3;
-		Testing_Dates=10;
-		Training_Dates=10;
-		N = 201;
-		//		K1=K2=K3=K4=15;
-		K1=15;
-		K2=10;
-		K3=10;
-		K4=10;
-		//		K5=J*3;
-		K5=0;
-		M=8000;
-	}
+//
+//	if(Example==4){					//Cuffignals Example
+//		PfadModell=ITO;
+//		option=MIN_PUT;
+//		delta=0;
+//		X0[0] = 10;
+//		Strike = X0[0];
+//		r = 0.05;
+//		sigma[0] = 0.2;
+//		T = 1;
+//		Testing_Dates=128;
+//		Training_Dates=128;
+//		N = 128;
+//		D=1;
+//		K1=15;
+//		K2=15;
+//		K3=15;
+//		K4=15;
+//		K5=0;
+//		M=8000;
+//	}
+//
+//	if(Example==6){					//CIR Example
+//		PfadModell=CIR;
+//		option=MAX_CALL;
+//		delta=0;
+//		kappa=0.5;
+//		theta=1.5;
+//		D=2;
+//		for(int j=0;j<D;++j)
+//		{
+//			X0[j]= theta;
+//			sigma[j]=0.2;
+//		}
+//		Strike = 1.;
+//		r = 0.05;
+//		T = 1;
+//		Testing_Dates=10;
+//		Training_Dates=10;
+//		N = 201;
+//		K1=15;
+//		K2=0;
+//		K3=0;
+//		K4=0;
+//		K5=0;
+//		M=15000;
+//	}
+//
+//	if(Example==7){					//firth
+//		PfadModell=ITO;
+//		eta=0;
+//		option=MIN_PUT;
+//		delta=0;
+//		lambdaJump=1;
+//		D=1;
+//		for(int j=0;j<D;++j)
+//		{
+//			X0[j]= 36.;
+//			sigma[j]=0.2;
+//		}
+//		Strike = 40.;
+//		r = 0.06;
+//		T = 2;
+//		Testing_Dates=10;
+//		Training_Dates=10;
+//		N = 401;
+//		//		K1=K2=K3=K4=15;
+//		K1=10;
+//		K2=10;
+//		K3=10;
+//		K4=10;
+//		//		K5=J*3;
+//		K5=0;
+//		M=20000;
+//	}
+//
+//	if(Example==8){					//Jump diffusion
+//		PfadModell=JDI;
+//		eta=0.1;
+//		option=MAX_CALL;
+//		delta=0.1;
+//		lambdaJump=1;
+//		D=10;
+//		for(int j=0;j<D;++j)
+//		{
+//			X0[j]= 90.;
+//			sigma[j]=0.2;
+//		}
+//		Strike = 100.;
+//		r = 0.05;
+//		T = 3;
+//		Testing_Dates=10;
+//		Training_Dates=10;
+//		N = 201;
+//		//		K1=K2=K3=K4=15;
+//		K1=15;
+//		K2=10;
+//		K3=10;
+//		K4=10;
+//		//		K5=J*3;
+//		K5=0;
+//		M=8000;
+//	}
 
         BFGS_Nesterov_Intervals=1;
-	Threadanzahl=4;
+	Threadanzahl=14;
 }

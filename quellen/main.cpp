@@ -25,9 +25,6 @@ void Test(){
 
 int main( int argc, char* args[]) {
 	int runden=1;
-
-	//mir github aus Essen!
-	//Test();
 	AmericanOption AMO;
 
 	if (argc == 1) {
