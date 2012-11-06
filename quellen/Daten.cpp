@@ -59,7 +59,7 @@ void AmericanOption::Daten(){
 		D=3;
 		for(int j=0;j<D;++j)
 		{
-			X0[j]= 110.;
+			X0[j]=90.;
 			sigma[j]=0.2;
 		}
 		Strike = 100.;
@@ -180,5 +180,5 @@ void AmericanOption::Daten(){
 //	}
 
         BFGS_Nesterov_Intervals=1;
-	Threadanzahl=14;
+	Threadanzahl=5;
 }

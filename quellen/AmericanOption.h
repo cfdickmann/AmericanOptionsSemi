@@ -10,7 +10,7 @@
 #include <iostream>
 #include <stdlib.h>
 //#include "../src/optimization.h"
-#include "Vektor.h"
+
 #include <time.h>
 #include "RNG.h"
 #include "MTRand.h"
