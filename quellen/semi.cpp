@@ -152,7 +152,7 @@ void AmericanOption::semi() {
 	}
 
 	if (D > 2) {
-		Mphi = 1+3+D*2+(D>2?D-1:0)+2+1+7000;
+		Mphi = 1+3+D*2+(D>2?D-1:0)+1+2+7000;
 		J = 200;
 		M = 10000;
 		faktor=2;
@@ -213,7 +213,7 @@ void AmericanOption::semi() {
 			//if(!mitForks)
 			{//Nicht ganz parallel
 				double min=99999999;
-				for(lauf=0;lauf<10;++lauf){
+				for(lauf=0;lauf<100;++lauf){
 					int number_active=0;
 					for(int j=0;j<J;++j)
 						if(rand()%faktor==0){

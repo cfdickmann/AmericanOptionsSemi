@@ -44,11 +44,11 @@ double AmericanOption::semi_Basisfunktionen1D(int zeit, int j, double* x)
 
 double AmericanOption::semi_Basisfunktionen2D(int zeit, int j, double* x) {
 	int reihe[D];
-		for(int jj=0;jj<D;++jj)
-			reihe[jj]=jj;
-		BubbleSort(x,reihe,D);
+	for(int jj=0;jj<D;++jj)
+		reihe[jj]=jj;
+	BubbleSort(x,reihe,D);
 
-    double y[D];
+	double y[D];
 	for (int d = 0; d < D; ++d) {
 		y[d] = x[d];
 		y[d] -= 100;
@@ -150,41 +150,31 @@ double AmericanOption::semi_BasisfunktionenHigherD(int zeit, int j, double* x) {
 
 	if(j<1)return x[reihe[1]]*x[reihe[1]]*x[reihe[0]];
 	j-=1;
-	//
-	//	if(j<1)return x[2]*x[2]*x[1];
-	//	j-=1;
-	//
-	//	if(j<1)return x[2]*x[1]*x[1];
-	//	j-=1;
 
-	//
-		//	if (j < 1000) {
-		//		return max(y[reihe[0]]- (double)(j)/1000.*10,0);
-		//	}
-		//	j -= 1000;
+	//	if (j < 1000) {
+	//		return max(y[reihe[0]]- (double)(j)/1000.*10,0);
+	//	}
+	//	j -= 1000;
 
 	if (j < 1000) {
-			double diff = x[reihe[0]]-x[reihe[1]];
-			return max(diff - (double) (j) / 1000. * 1. * X0[0], 0);
-		}
-		j -= 1000;
+		double diff = x[reihe[0]]-x[reihe[1]];
+		return max(diff - (double) (j) / 1000. * 1. * X0[0], 0);
+	}
+	j -= 1000;
 
-		if (j < 1000) {   //NEU
-			double beide=x[reihe[0]]+x[reihe[1]];
-			return max(beide - (double) (j) / 1000. * 10. * (double) 2 * X0[0], 0);
-		}
-		j -= 1000;
+	if (j < 1000) {   //NEU
+		double beide=x[reihe[0]]+x[reihe[1]];
+		return max(beide - (double) (j) / 1000. * 10. * (double) 2 * X0[0], 0);
+	}
+	j -= 1000;
 
-
-
-		if (j < 1000) {
-			double summe = 0;
-			for (int d = 0; d < D; ++d)
-				summe += x[d];
-			return max(summe - (double) (j) / 1000. * 10. * (double) D * X0[0], 0);
-		}
-		j -= 1000;
-
+	if (j < 1000) {
+		double summe = 0;
+		for (int d = 0; d < D; ++d)
+			summe += x[d];
+		return max(summe - (double) (j) / 1000. * 10. * (double) D * X0[0], 0);
+	}
+	j -= 1000;
 
 	if (j < 1000) {
 		double xx[D];
@@ -194,51 +184,38 @@ double AmericanOption::semi_BasisfunktionenHigherD(int zeit, int j, double* x) {
 	}
 	j -= 1000;
 
-
-		if (j < 1000) {
-			double xx[D];
-			for (int d = 0; d < D; ++d){
-				xx[d] = x[d];
-				if(j%D==d)
-					xx[d] *=(double) j / 1000. * 10.;
-			}
-			return payoff(xx, zeit);
+	if (j < 1000) {
+		double xx[D];
+		for (int d = 0; d < D; ++d){
+			xx[d] = x[d];
+			if(j%D==d)
+				xx[d] *=(double) j / 1000. * 10.;
 		}
-		j -= 1000;
+		return payoff(xx, zeit);
+	}
+	j -= 1000;
 
-//	if (j < 1000) {  //NEU
-//		double xx[D];
-//		for (int d = 0; d < D; ++d){
-//			xx[d] = x[d];
-//			if(j%D==reihe[d])
-//				xx[d] *=(double) j / 1000. * 10.;
-//		}
-//		return payoff(xx, zeit);
-//	}
-//	j -= 1000;
-	//
-		if (j < 1000) {
-			double xx[D];
-			for (int d = 0; d < D; ++d){
-				xx[d] = x[d];
-				if(j%D!=d)
-					xx[d] *=(double) j / 1000. * 1000.;
-			}
-			return payoff(xx, zeit);
+	if (j < 1000) {
+		double xx[D];
+		for (int d = 0; d < D; ++d){
+			xx[d] = x[d];
+			if(j%D!=d)
+				xx[d] *=(double) j / 1000. * 1000.;
 		}
-		j -= 1000;
+		return payoff(xx, zeit);
+	}
+	j -= 1000;
 
-		if (j < 1000) {
-				double summe = 0;
-				for (int d = 0; d < D; ++d)
-					if(d!=j%3)
-						summe += x[d];
-				return max(summe - (double) (j) / 1000. * 10. * (double) D * X0[0], 0);
-			}
-			j -= 1000;
-
-
-
+	if (j < 1000) {  //NEU
+		double xx[D];
+		for (int d = 0; d < D; ++d){
+			xx[d] = x[d];
+			if(j%D==reihe[d])
+				xx[d] *=(double) j / 1000. * 10.;
+		}
+		return payoff(xx, zeit);
+	}
+	j -= 1000;
 
 	printf("Error 654 \n");return -1;
 }
