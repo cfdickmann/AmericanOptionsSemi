@@ -621,9 +621,12 @@ double* AmericanOption::LP_mitGLPK_Loesen() {
 
 void AmericanOption::semi_ergebnisse_ausgeben(){
 	printf("semi_betas ausgeben \n");
-	for (int j = 0; j < Mphi; ++j)
-		printf("%.4lf, ", semi_betas[nactual][j]);
+	for (int j = 0; j < Mphi; ++j){
+	if((Mphi-j)%1000==0)printf("\n\n");
+		printf("%.0lf, ", 1000*semi_betas[nactual][j]);
+	}
 	printf("\n");
+
 	//    printf("C_upperbound ausgeben \n");
 	//    for (int j = 0; j < J; ++j)
 	//        printf("%.3lf, ", linearCombinationOfBasis(nactual, stuetzpunkte[j], 0));
