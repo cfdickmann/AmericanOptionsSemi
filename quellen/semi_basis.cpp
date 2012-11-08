@@ -4,33 +4,26 @@
 using namespace std; 
 
 double AmericanOption::semi_Basisfunktionen(int zeit, int j, double* x) {
-	if (D == 1) 		return semi_Basisfunktionen1D(zeit,j,x);
+	if (D == 1)	return semi_Basisfunktionen1D(zeit,j,x);
 	if (D == 2)	return semi_Basisfunktionen2D(zeit,j,x);
-	if (D > 2) return semi_BasisfunktionenHigherD(zeit,j,x);
+	if (D > 2) 	return semi_BasisfunktionenHigherD(zeit,j,x);
 	printf("Error598");
 	return -1;
 }
 
 double AmericanOption::semi_Basisfunktionen1D(int zeit, int j, double* x)
 {
-	double y[D];
-	for (int d = 0; d < D; ++d) {
-		y[d] = x[d];
-		y[d] -= 100;
-		y[d] /= 100;
-	}
-
 	if (j < 6) {
 		if (j == 0)
 			return 1;
 		if (j == 1)
-			return y[0];
+			return x[0];
 		if (j == 2)
-			return y[0] * y[0];
+			return x[0] * x[0];
 		if (j == 3)
-			return y[0] * y[0] * y[0];
+			return x[0] * x[0] * x[0];
 		if (j == 4)
-			return y[0] * y[0] * y[0] * y[0]; //Polynom 5. Grades bringt nur Probleme
+			return x[0] * x[0] * x[0] * x[0]; //Polynom 5. Grades bringt nur Probleme
 		if (j == 5)
 			return payoff(x, zeit);
 	}
@@ -107,8 +100,8 @@ double AmericanOption::semi_BasisfunktionenHigherD(int zeit, int j, double* x) {
 	double y[D];
 	for (int d = 0; d < D; ++d) {
 		y[d] = x[d];
-		y[d] -= 100;
-		y[d] /= 100;
+		y[d] -= Strike;
+		y[d] /= Strike;
 	}
 
 	int reihe[D];

@@ -136,27 +136,27 @@ void AmericanOption::semi() {
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
 
 	if (D == 1) {
-		Mphi = 56; //56
-		J = 80; //80
-		M = 5000;
-		faktor=1;
-		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
-	}
-
-	if (D == 2) {
-		Mphi = 7+4000; //2007   // Basisfunktionen
-		J = 200; //49 // Stuetzpunkte
-		M = 10000; //5000       // Pfade an jedem stuetzpunkt zum schaetzen
-		faktor=2;
+		Mphi = 50; //16,56
+		J = 200; //25,80
+		M = 10000; // 5000,10000
+		faktor=2;  //1
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 10
 	}
 
+	if (D == 2) {
+		Mphi = 7+4000; //4007   // Basisfunktionen
+		J = 200; //200 // Stuetzpunkte
+		M = 10000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
+		faktor=2;  //2
+		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 1
+	}
+
 	if (D > 2) {
-		Mphi = 1+3+D*2+(D>2?D-1:0)+1+2+7000;
-		J = 200;
-		M = 10000;
-		faktor=2;
-		durchlaeufe = 1;
+		Mphi = 1+3+D*2+(D-1)+1+2+7000; //+7000
+		J = 200; //200
+		M = 10000; //10000
+		faktor=2;  //2
+		durchlaeufe = 1;  //1
 	}
 
 	printf("Dimensionen: %d\n",D);
@@ -195,7 +195,7 @@ void AmericanOption::semi() {
 		printf("Zeitschritt %d\n", n);
 		nactual = n;
 
-		if(D>=2){
+		if(D>1){
 			stuetzpunkte_setzen(nactual);
 			semi_inner_paths_erzeugen();
 			//		stuetzpunkte_ausrichten();
@@ -213,7 +213,7 @@ void AmericanOption::semi() {
 			//if(!mitForks)
 			{//Nicht ganz parallel
 				double min=99999999;
-				for(lauf=0;lauf<100;++lauf){
+				for(lauf=0;lauf<(D==1?100:100);++lauf){
 					int number_active=0;
 					for(int j=0;j<J;++j)
 						if(rand()%faktor==0){
@@ -440,14 +440,14 @@ void AmericanOption::stuetzpunkte_setzen(int n) {
 				stuetzpunkte[i][0] = Strike * (double) (0.9 + (i + 1) / (double) J);
 	}
 
-	if (D == 332) {
-		int WJ = (int) (sqrt(J));
-		for (int i = 0; i < WJ; ++i)
-			for (int k = 0; k < WJ; ++k) {
-				stuetzpunkte[i * WJ + k][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
-				stuetzpunkte[i * WJ + k][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
-			}
-	}
+//	if (D == 332) {
+//		int WJ = (int) (sqrt(J));
+//		for (int i = 0; i < WJ; ++i)
+//			for (int k = 0; k < WJ; ++k) {
+//				stuetzpunkte[i * WJ + k][0] = Strike * (0.01 + 2 * (double) (i) / (double) (WJ));
+//				stuetzpunkte[i * WJ + k][1] = Strike * (0.01 + 2 * (double) (k) / (double) (WJ));
+//			}
+//	}
 
 	//		if (D == 3) {
 	//			int WJ = (int) (ceil(pow(J, 1. / 3.)));
@@ -461,7 +461,7 @@ void AmericanOption::stuetzpunkte_setzen(int n) {
 	//					}
 	//		}
 
-	if (D >= 2) {
+	if (D >1) {
 		printf("zufaellige Stuetzstellen\n");
 		RNG generator;
 		double** X = DoubleFeld(N, D);
@@ -497,7 +497,6 @@ double * semi_ergebnisse;
 
 void* DELEGATE_semi_test(void* data) {
 	zeiger3->semi_testThread(((int*)data)[0]);
-	//zeiger3->semi_testThread((ThreadDaten*)data);
 	pthread_exit(NULL);
 	return NULL;
 }
