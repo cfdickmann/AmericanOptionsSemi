@@ -13,7 +13,7 @@ void AmericanOption::Daten(){
 		//	PfadModell=EULER;
 		option=MIN_PUT;
 		delta=0;
-		X0[0] = 120.;      		//Spot
+		X0[0] = 80.;      		//Spot
 		Strike = 100.; 			//Ausuebungspreis
 		r = 0.06;   			//interest rate
 		sigma[0] = 0.4;  		//Volatility
@@ -56,10 +56,10 @@ void AmericanOption::Daten(){
 		PfadModell=ITO;
 		option=MAX_CALL;
 		delta=0.1;
-		D=5;
+		D=2;
 		for(int j=0;j<D;++j)
 		{
-			X0[j]=110.;
+			X0[j]=90.;
 			sigma[j]=0.2;
 		}
 		Strike = 100.;
@@ -180,5 +180,5 @@ void AmericanOption::Daten(){
 //	}
 
         BFGS_Nesterov_Intervals=1;
-	Threadanzahl=5;
+	Threadanzahl=15;
 }

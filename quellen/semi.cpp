@@ -40,11 +40,23 @@ void* DELEGATE_inner_paths_erzeugen_THREAD(void* data) {
 
 void AmericanOption::inner_paths_erzeugen_THREAD(int threadnummer){
 	RNG generator;
+	double** wdiff=DoubleFeld(N,D);
+	int lauf=0;
 	for(int u=0;u<durchlaeufe;++u)
 		for (int j = 0; j < J; ++j)
 			for (int m = 0; m < M; ++m)
 				if(m%Threadanzahl==threadnummer)
-					Pfadgenerieren(semi_inner_paths[u][j][m], 0, stuetzpunkte[j],&generator);
+				{
+					lauf++;
+
+						for(int n=0;n<N;++n)
+							for(int d=0;d<D;++d)
+								if(lauf%2==1)
+								wdiff[n][d]=sqrt(dt)*generator.nextGaussian();
+					else wdiff[n][d]*=-1.;
+					Pfadgenerieren(semi_inner_paths[u][j][m],wdiff, 0, stuetzpunkte[j]);
+				}
+	deleteDoubleFeld(wdiff,N,D);
 }
 
 void AmericanOption::koeff_testen_THREAD(int threadnummer)
@@ -132,15 +144,16 @@ void AmericanOption::semi() {
 	int faktor;
 	printf("LSM_k: %d,%d,%d,%d,%d\n",LSM_K0,LSM_K1,LSM_K2,LSM_K3,LSM_K4);
 
-	semi_testingpaths = 1e6; //Wie viele Testingpaths
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
-
+int L=1;
 	if (D == 1) {
-		Mphi = 50; //16,56
-		J = 200; //25,80
+		Mphi = 56; //16,56
+		J = 80; //25,80
 		M = 10000; // 5000,10000
-		faktor=2;  //1
-		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 10
+		faktor=1;  //1
+		L=1;        //Optimierungsversuche
+		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
+		semi_testingpaths = 1e6*10; //Testingpaths, 1e6*10
 	}
 
 	if (D == 2) {
@@ -148,7 +161,9 @@ void AmericanOption::semi() {
 		J = 200; //200 // Stuetzpunkte
 		M = 10000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
 		faktor=2;  //2
+		L=10;
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 1
+		semi_testingpaths = 1e6; // Testingpaths
 	}
 
 	if (D > 2) {
@@ -156,7 +171,9 @@ void AmericanOption::semi() {
 		J = 200; //200
 		M = 10000; //10000
 		faktor=2;  //2
+		L=100;
 		durchlaeufe = 1;  //1
+		semi_testingpaths = 1e6; //Testingpaths
 	}
 
 	printf("Dimensionen: %d\n",D);
@@ -213,7 +230,7 @@ void AmericanOption::semi() {
 			//if(!mitForks)
 			{//Nicht ganz parallel
 				double min=99999999;
-				for(lauf=0;lauf<(D==1?100:100);++lauf){
+				for(lauf=0;lauf<L;++lauf){
 					int number_active=0;
 					for(int j=0;j<J;++j)
 						if(rand()%faktor==0){
