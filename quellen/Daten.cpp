@@ -3,7 +3,7 @@
 using namespace std;
 
 void AmericanOption::Daten(){
-	int Example=1;
+	int Example=3;
 
 	X0=(double*)malloc(sizeof(double)*100);
 	sigma=(double*)malloc(sizeof(double)*100);
@@ -59,7 +59,7 @@ void AmericanOption::Daten(){
 		D=2;
 		for(int j=0;j<D;++j)
 		{
-			X0[j]=90.;
+			X0[j]=110.;
 			sigma[j]=0.2;
 		}
 		Strike = 100.;
@@ -180,5 +180,5 @@ void AmericanOption::Daten(){
 //	}
 
         BFGS_Nesterov_Intervals=1;
-	Threadanzahl=15;
+	Threadanzahl=5;
 }
