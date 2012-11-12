@@ -71,18 +71,6 @@ double AmericanOption::semi_Basisfunktionen2D(int zeit, int j, double* x) {
 	}
 	j -= 1000;
 
-	if (j < 1000) {
-		double xx[2];
-		for(int d=0;d<D;d++)
-		{
-			xx[d]=x[d];
-			if(j%D==d)
-				xx[d] *= j / 1000. * 2. ;
-		}
-		return payoff(xx, zeit);
-	}
-	j -= 1000;
-
 	if (j <1000){
 		return max((x[0] + x[1]) -  j / 1000. *4* X0[0], 0);
 	}

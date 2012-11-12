@@ -157,7 +157,7 @@ int L=1;
 	}
 
 	if (D == 2) {
-		Mphi = 7+4000; //4007   // Basisfunktionen
+		Mphi = 7+3000; //3007   // Basisfunktionen
 		J = 200; //200 // Stuetzpunkte
 		M = 10000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
 		faktor=2;  //2
