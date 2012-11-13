@@ -72,10 +72,7 @@ double AmericanOption::max(double d1, double d2) {
 }
 
 double AmericanOption::payoff(double* x, int time) {
-	return payoff(x,time,D);
-}
-
-double AmericanOption::payoff(double* x, int time, int D) {
+	//	return payoff(x,time,D);
 	if (option == MIN_PUT)
 		return max(Strike - Min(x, D), 0) * exp(-r * dt * (double) (time)); //Min Put
 	if (option == MAX_CALL)
@@ -83,6 +80,34 @@ double AmericanOption::payoff(double* x, int time, int D) {
 	printf("ERROR, option unknown!\n");
 	return -1;
 }
+
+double* AmericanOption::payoffAbl(double* x, int time) {
+	double* grad=DoubleFeld(D);
+	if (option == MIN_PUT)
+	{
+		for(int d=0;d<D;++d)
+			if(x[d]==Min(x,D))grad[d]=-1;
+		return grad;
+	}
+	if (option == MAX_CALL)
+	{
+		for(int d=0;d<D;++d)
+			if(x[d]==Max(x,D))grad[d]=1;
+		return grad;
+	}
+	printf("ERROR, option unknown!\n");
+	return NULL;
+}
+
+//
+//double AmericanOption::payoff(double* x, int time, int D) {
+//	if (option == MIN_PUT)
+//		return max(Strike - Min(x, D), 0) * exp(-r * dt * (double) (time)); //Min Put
+//	if (option == MAX_CALL)
+//		return max(Max(x, D) - Strike, 0) * exp(-r * dt * (double) (time)); //Max Call
+//	printf("ERROR, option unknown!\n");
+//	return -1;
+//}
 
 void AmericanOption::neueExerciseDates(int n) {
 	Exercise_Dates = (int*) malloc(sizeof (int) *(n + 1));
@@ -123,7 +148,7 @@ void AmericanOption::Pfadgenerieren(double** X,  int start, double* S, RNG* gene
 	double** wdiff =DoubleFeld(N,D);
 	for(int n=0;n<N;++n)
 		for(int d=0;d<D;++d)
-		   wdiff[n][d]=sqrt(dt)*generator->nextGaussian();
+			wdiff[n][d]=sqrt(dt)*generator->nextGaussian();
 	Pfadgenerieren(X, wdiff, 0, S);
 	deleteDoubleFeld(wdiff,N,D);
 }

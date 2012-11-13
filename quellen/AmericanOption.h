@@ -122,7 +122,8 @@ public:
 	double nextGaussian();
 	int Poisson(double theta);
 	double payoff(double* x, int time);
-	double payoff(double* x, int time, int D);
+	double* payoffAbl(double* x, int time);
+
 	double Upayoff(double* x, int time);
 	double unif();
 	double EuropeanPut1D_discounted(double t, double T, double S, double Strike);
@@ -244,15 +245,21 @@ public:
 	double* stuetzerwartung;
 	void StuetzErwartung(int t);
 	double semi_Basisfunktionen(int zeit, int j, double* x);
+	double* semi_BasisfunktionenAbl(int zeit, int j, double* x);
 	double semi_Basisfunktionen1D(int zeit, int j, double* x);
+	double* semi_Basisfunktionen1DAbl(int zeit, int j, double* x);
 	double semi_Basisfunktionen2D(int zeit, int j, double* x);
+	double* semi_Basisfunktionen2DAbl(int zeit, int j, double* x);
 	double semi_BasisfunktionenHigherD(int zeit, int j, double* x);
+	double* semi_BasisfunktionenHigherDAbl(int zeit, int j, double* x);
 	void semi();
 	//	void Test();
 	int nactual;
 	double linearCombinationOfBasis(int zeit, double* x);
+	double* linearCombinationOfBasis_Abl(int zeit, double* x);
 	double linearCombination(double* koeff, double* x);
 	double semi_f(int n, double* x);
+	double semi_f_Abl(int n, double* x, int d);
 };
 
 } /* namespace std */

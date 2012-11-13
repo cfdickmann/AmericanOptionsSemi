@@ -149,11 +149,11 @@ int L=1;
 	if (D == 1) {
 		Mphi = 56; //16,56
 		J = 80; //25,80
-		M = 10000; // 5000,10000
+		M = 1000; // 5000,10000
 		faktor=1;  //1
 		L=1;        //Optimierungsversuche
 		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
-		semi_testingpaths = 1e6*10; //Testingpaths, 1e6*10
+		semi_testingpaths = 1e3*10; //Testingpaths, 1e6*10
 	}
 
 	if (D == 2) {
@@ -366,6 +366,22 @@ double AmericanOption::linearCombinationOfBasis(int zeit, double* x) {
 	return sum;
 }
 
+
+double* AmericanOption::linearCombinationOfBasis_Abl(int zeit, double* x) {
+	double* sum =DoubleFeld(D);
+	//    for (int m = 0; m < Mphi; ++m)
+	//        sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
+	int m;
+	for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
+		m = semi_betas_index[zeit][i];
+		double* B=semi_BasisfunktionenAbl(zeit, m, x);
+		for(int d=0;d<D;++d)
+			sum[d] += semi_betas[zeit][m] * B[d];
+		deleteDoubleFeld(B,D);
+	}
+	return sum;
+}
+
 double AmericanOption::linearCombination(double* koeff, double* x) {
 	double sum = 0;
 	for (int m = 0; m < Mphi; ++m)
@@ -430,6 +446,16 @@ double AmericanOption::semi_f(int zeit, double* x) {
 	return max(0, payoff(x, zeit) - linearCombinationOfBasis(zeit, x));
 }
 
+double AmericanOption::semi_f_Abl(int zeit, double* x, int d) {
+	double* grad;
+	if (zeit == N - 1)
+		grad=payoffAbl(x, zeit);
+	return max(0, payoff(x, zeit) - linearCombinationOfBasis(zeit, x));
+	double erg=grad[d];
+	deleteDoubleFeld(grad,D);
+	return erg;
+}
+
 void AmericanOption::stuetzerwartung_ausrechnenThread(int k) {
 	for (int j = 0; j < J; ++j)
 		if (j % Threadanzahl == k) { // jeder Thread muss nur einige bearbeiten
@@ -477,13 +503,17 @@ void AmericanOption::stuetzpunkte_setzen(int n) {
 	//						stuetzpunkte[i * WJ * WJ + k * WJ + j][2] = Strike * (0.01 + 2 * (double) (j) / (double) (WJ));
 	//					}
 	//		}
+bool gefaechert=false;
 
 	if (D >1) {
 		printf("zufaellige Stuetzstellen\n");
 		RNG generator;
+		double startwert[D];
 		double** X = DoubleFeld(N, D);
 		for (int j = 0; j < J; ++j) {
-			Pfadgenerieren(X,0,X0,&generator);
+			for(int d=0;d<D;++d)
+			startwert[d]=X0[d]*exp((gefaechert==true)*0.1*generator.nextGaussian());
+			Pfadgenerieren(X,0,startwert,&generator);
 			for (int d = 0; d < D; ++d)
 				stuetzpunkte[j][d] = X[n][d];
 		}
@@ -511,6 +541,7 @@ void AmericanOption::lp_ausgeben() {
 }
 
 double * semi_ergebnisse;
+double ** semi_ergebnisse_grad;
 
 void* DELEGATE_semi_test(void* data) {
 	zeiger3->semi_testThread(((int*)data)[0]);
@@ -520,6 +551,7 @@ void* DELEGATE_semi_test(void* data) {
 
 void AmericanOption::semi_testThread(int threadnummer) {
 	double erg=0;
+	double grad[D];
 	double** x = DoubleFeld(N, D);
 	int seed = time(NULL) +threadnummer + getpid();
 	srand(seed);
@@ -529,14 +561,20 @@ void AmericanOption::semi_testThread(int threadnummer) {
 		for (int m = 0; m < durchlaeufe; ++m) {
 			Pfadgenerieren(x, 0,X0,&generator);
 			erg += semi_f(n, x[n]);
+			for(int d=0;d<D;++d)
+				grad[d]+=semi_f_Abl(n, x[n],d); // TODO ineffizient
 		}
 	semi_ergebnisse[threadnummer]=erg/(double)(durchlaeufe);
+for(int d=0;d<D;++d)
+	semi_ergebnisse_grad[d][threadnummer]=grad[d]/(double)(durchlaeufe);
 	deleteDoubleFeld(x,N,D);
 }
 
 void AmericanOption::semi_testing() {
 	printf("Testing\n");
 	semi_ergebnisse=DoubleFeld(Threadanzahl);
+
+	semi_ergebnisse_grad=DoubleFeld(D,Threadanzahl);
 
 	int* nummern=IntFeld(Threadanzahl);
 	pthread_t threads[Threadanzahl];
@@ -553,8 +591,17 @@ void AmericanOption::semi_testing() {
 		printf("ergebni %f\n",semi_ergebnisse[j]);
 
 	double erg=mean(semi_ergebnisse,Threadanzahl);
+	double grad[D];
+	for(int d=0;d<D;++d)
+		grad[d]=mean(semi_ergebnisse_grad[d],Threadanzahl);
+
 	deleteDoubleFeld(semi_ergebnisse,Threadanzahl);
+	deleteDoubleFeld(semi_ergebnisse_grad,D,Threadanzahl);
 	printf("%f\n", erg);
+	printf("Deltas: ");
+	for(int d=0;d<D;++d)
+		printf("%f, ",grad[d]);
+	printf("\n;");
 	ErgebnisAnhaengen(erg,(char*)"ergebnisse_semi.txt");
 }
 

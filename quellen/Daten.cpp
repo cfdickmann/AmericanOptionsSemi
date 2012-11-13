@@ -3,7 +3,7 @@
 using namespace std;
 
 void AmericanOption::Daten(){
-	int Example=3;
+	int Example=1;
 
 	X0=(double*)malloc(sizeof(double)*100);
 	sigma=(double*)malloc(sizeof(double)*100);
@@ -18,9 +18,9 @@ void AmericanOption::Daten(){
 		r = 0.06;   			//interest rate
 		sigma[0] = 0.4;  		//Volatility
 		T = 0.5; 			//Gesamtzeit
-		Testing_Dates=40;
-		Training_Dates=40;
-		N =40;  			//time discretization
+		Testing_Dates=10;
+		Training_Dates=10;
+		N =10;  			//time discretization
 		D=1;
 		K1=20;                          // Basisfunktionen fuer
 		K2=0;                           // BFGS und Nesterov
