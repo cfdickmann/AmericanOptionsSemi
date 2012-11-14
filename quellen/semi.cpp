@@ -147,13 +147,13 @@ void AmericanOption::semi() {
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
 	int L=1;
 	if (D == 1) {
-		Mphi = 56; //16,56
-		J = 80; //25,80
-		M = 1000; // 5000,10000
+		Mphi = 16; //16,56
+		J = 25; //25,80
+		M = 5000; // 5000,10000
 		faktor=1;  //1
 		L=1;        //Optimierungsversuche
 		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
-		semi_testingpaths = 1e3*10; //Testingpaths, 1e6*10
+		semi_testingpaths = 1e4*10; //Testingpaths, 1e6*10
 	}
 
 	if (D == 2) {
@@ -163,7 +163,7 @@ void AmericanOption::semi() {
 		faktor=2;  //2
 		L=10;
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 1
-		semi_testingpaths = 1e6; // Testingpaths
+		semi_testingpaths = 1e5; // Testingpaths
 	}
 
 	if (D > 2) {
@@ -467,16 +467,17 @@ double AmericanOption::semi_f_Abl(int zeit, double* x, int d) {
 		return 0;
 	else
 	{
-		double sum = 0;
-			int m;
-			for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
-				m = semi_betas_index[zeit][i];
-				double* B;
-				B=semi_BasisfunktionenAbl(zeit, m, x);
-				sum += semi_betas[zeit][m] * B[d];
-				deleteDoubleFeld(B,D);
-			}
-			return sum;
+		double* A=payoffAbl(x, zeit);
+		double sum = A[d];
+		deleteDoubleFeld(A,D);
+		int m;
+		for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
+			m = semi_betas_index[zeit][i];
+			double* B=semi_BasisfunktionenAbl(zeit, m, x);
+			sum -= semi_betas[zeit][m] * B[d];
+			deleteDoubleFeld(B,D);
+		}
+		return sum;
 	}
 }
 
@@ -536,7 +537,7 @@ void AmericanOption::stuetzpunkte_setzen(int n) {
 		double** X = DoubleFeld(N, D);
 		for (int j = 0; j < J; ++j) {
 			for(int d=0;d<D;++d)
-				startwert[d]=X0[d]*exp((gefaechert==true)*0.1*generator.nextGaussian());
+				startwert[d]=X0[d];//*exp((gefaechert==true)*0.1*generator.nextGaussian());
 			Pfadgenerieren(X,0,startwert,&generator);
 			for (int d = 0; d < D; ++d)
 				stuetzpunkte[j][d] = X[n][d];
@@ -566,6 +567,7 @@ void AmericanOption::lp_ausgeben() {
 
 double * semi_ergebnisse;
 double ** semi_ergebnisse_grad;
+double ** semi_ergebnisse_diff;
 
 void* DELEGATE_semi_test(void* data) {
 	zeiger3->semi_testThread(((int*)data)[0]);
@@ -575,30 +577,53 @@ void* DELEGATE_semi_test(void* data) {
 
 void AmericanOption::semi_testThread(int threadnummer) {
 	double erg=0;
+	double diff_ergs[D];
 	double grad[D];
 	double** x = DoubleFeld(N, D);
+	double *** y =DoubleFeld(D,N,D);
 	int seed = time(NULL) +threadnummer + getpid();
 	srand(seed);
 	int durchlaeufe = (int)(double)(semi_testingpaths) / (double)(Threadanzahl);
 	RNG generator;
-	for (int n = 0; n < N; ++n)
-		for (int m = 0; m < durchlaeufe; ++m) {
-			Pfadgenerieren(x, 0,X0,&generator);
-			erg += semi_f(n, x[n]);
+	for (int m = 0; m < durchlaeufe; ++m) {
+		double ** wdiff=DoubleFeld(N,D);
+		for(int n=0;n<N;++n)
 			for(int d=0;d<D;++d)
-				grad[d]+=semi_f_Abl(n, x[n],d); // TODO ineffizient
+				wdiff[n][d]=sqrt(dt)*generator.nextGaussian();
+		Pfadgenerieren(x, wdiff,0,X0);
+		for(int d=0;d<D;++d)
+		{
+			X0[d]*=1.0001;
+			Pfadgenerieren(y[d],wdiff,0,X0);
+			X0[d]/=1.0001;
 		}
+
+		for (int n = 0; n < N; ++n){
+			double a= semi_f(n, x[n]);
+			erg += a;
+			for(int d=0;d<D;++d)
+				diff_ergs[d]+= (semi_f(n, y[d][n])-a)/(0.0001*X0[d]);
+
+			//	for(int d=0;d<D;++d)
+			//	grad[d]+=semi_f_Abl(n, x[n],d) * x[n][d]/ X0[d];
+		}
+		deleteDoubleFeld(wdiff,N,D);
+	}
 	semi_ergebnisse[threadnummer]=erg/(double)(durchlaeufe);
-	for(int d=0;d<D;++d)
+	for(int d=0;d<D;++d){
+		semi_ergebnisse_diff[d][threadnummer]=diff_ergs[d]/(double)(durchlaeufe);
 		semi_ergebnisse_grad[d][threadnummer]=grad[d]/(double)(durchlaeufe);
+	}
 	deleteDoubleFeld(x,N,D);
+	deleteDoubleFeld(y,D,N,D);
 }
 
 void AmericanOption::semi_testing() {
-	printf("Testing\n");
+	printf("Testing (%d testing paths) \n",semi_testingpaths);
 	semi_ergebnisse=DoubleFeld(Threadanzahl);
 
 	semi_ergebnisse_grad=DoubleFeld(D,Threadanzahl);
+	semi_ergebnisse_diff=DoubleFeld(D,Threadanzahl);
 
 	int* nummern=IntFeld(Threadanzahl);
 	pthread_t threads[Threadanzahl];
@@ -616,15 +641,22 @@ void AmericanOption::semi_testing() {
 
 	double erg=mean(semi_ergebnisse,Threadanzahl);
 	double grad[D];
-	for(int d=0;d<D;++d)
+	double grad_diff[D];
+	for(int d=0;d<D;++d){
 		grad[d]=mean(semi_ergebnisse_grad[d],Threadanzahl);
-
+		grad_diff[d]=mean(semi_ergebnisse_diff[d],Threadanzahl);
+	}
 	deleteDoubleFeld(semi_ergebnisse,Threadanzahl);
 	deleteDoubleFeld(semi_ergebnisse_grad,D,Threadanzahl);
 	printf("%f\n", erg);
 	printf("Deltas: ");
 	for(int d=0;d<D;++d)
 		printf("%f, ",grad[d]);
+	printf("\n;");
+	printf("%f\n", erg);
+	printf("Diff  : ");
+	for(int d=0;d<D;++d)
+		printf("%f, ",grad_diff[d]);
 	printf("\n;");
 	ErgebnisAnhaengen(erg,(char*)"ergebnisse_semi.txt");
 }
@@ -674,7 +706,6 @@ double* AmericanOption::LP_mitGLPK_Loesen() {
 		glp_set_col_bnds(lp, m + 1, GLP_FR, 0.0, 0.0);
 		glp_set_obj_coef(lp, m + 1, C[m]);
 	}
-
 
 	//Matrixeintraege uebergeben
 	//printf("indexlaenge %d\n",indexlaenge);

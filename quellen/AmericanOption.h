@@ -31,6 +31,7 @@
 #define MAX_CALL 1  //bedeutet Put im Fall D=1
 #define MIN_PUT 0   //bedeutet Put im Fall D=1
 #define ITO 1
+#define ITOrho 11
 #define EULER 2
 #define CIR 3
 #define JDI 4
@@ -62,6 +63,7 @@ public:
 	double kappa; // for mean reversion
 	double theta; // for mean reversion
 
+	double rho;
 	int Testing_Dates;
 	int Training_Dates;
 	int N; //time discretization

@@ -3,17 +3,18 @@
 using namespace std;
 
 void AmericanOption::Daten(){
-	int Example=1;
+	int Example=103;
 
 	X0=(double*)malloc(sizeof(double)*100);
 	sigma=(double*)malloc(sizeof(double)*100);
+
 
 	if(Example==1){				//Rogers Example 1d
 		PfadModell=ITO;
 		//	PfadModell=EULER;
 		option=MIN_PUT;
 		delta=0;
-		X0[0] = 80.;      		//Spot
+		X0[0] = 110.;      		//Spot
 		Strike = 100.; 			//Ausuebungspreis
 		r = 0.06;   			//interest rate
 		sigma[0] = 0.4;  		//Volatility
@@ -29,6 +30,28 @@ void AmericanOption::Daten(){
 		K5=0;
 		M=15000;   		        //Number of replications fuer BFGS und Nesterov
 	}
+
+	if(Example==101){				//Rogers Example 1d
+			PfadModell=ITO;
+			//	PfadModell=EULER;
+			option=MIN_PUT;
+			delta=0;
+			X0[0] = 40.;      		//Spot
+			Strike = 35.; 			//Ausuebungspreis
+			r = 0.0488;   			//interest rate
+			sigma[0] = 0.2;  		//Volatility
+			T = 1./3.; 			//Gesamtzeit
+			Testing_Dates=50;
+			Training_Dates=50;
+			N =50;  			//time discretization
+			D=1;
+			K1=20;                          // Basisfunktionen fuer
+			K2=0;                           // BFGS und Nesterov
+			K3=0;
+			K4=0;
+			K5=0;
+			M=15000;   		        //Number of replications fuer BFGS und Nesterov
+		}
 
 	if(Example==2){					//Rogers Example MIN_PUT
 		PfadModell=ITO;
@@ -51,6 +74,32 @@ void AmericanOption::Daten(){
 		K5=0;
 		M=20000;
 	}
+
+
+	if(Example==103){					//Glasserman Example MaxCall
+			PfadModell=ITOrho;
+			option=MAX_CALL;
+			delta=0.1;
+			D=2;
+			rho=0.3;
+			for(int j=0;j<D;++j)
+			{
+				X0[j]=100.;
+				sigma[j]=0.2;
+			}
+			Strike = 100.;
+			r = 0.05;
+			T = 1;
+			Testing_Dates=10;
+			Training_Dates=10;
+			N = 10;
+			K1=15;
+			K2=15;
+			K3=15;
+			K4=15;
+			K5=0;
+			M=5000;
+		}
 
 	if(Example==3){					//Glasserman Example MaxCall
 		PfadModell=ITO;
@@ -180,5 +229,5 @@ void AmericanOption::Daten(){
 //	}
 
         BFGS_Nesterov_Intervals=1;
-	Threadanzahl=5;
+	Threadanzahl=15;
 }

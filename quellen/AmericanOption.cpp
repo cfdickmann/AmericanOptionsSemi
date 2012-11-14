@@ -154,17 +154,30 @@ void AmericanOption::Pfadgenerieren(double** X,  int start, double* S, RNG* gene
 }
 
 void AmericanOption::Pfadgenerieren(double** X, double** wdiff, int start, double * S) {
-	for (int j = 0; j < D; ++j)
-		X[start][j] = S[j];
+	for (int d = 0; d < D; ++d)
+		X[start][d] = S[d];
 
-	for (int j = 0; j < D; ++j) {
+	for (int d = 0; d < D; ++d) {
 		for (int n = start + 1; n < N; ++n) {
 			if (PfadModell == ITO)
-				X[n][j] = X[n - 1][j] * exp((((r - delta) - 0.5 * sigma[j] * sigma[j]) * dt + sigma[j] * wdiff[n][j]));
+				X[n][d] = X[n - 1][d] * exp((((r - delta) - 0.5 * sigma[d] * sigma[d]) * dt + sigma[d] * wdiff[n][d]));
 			if (PfadModell == EULER)
-				X[n][j] = X[n - 1][j] + (r - delta) * X[n - 1][j] * dt + sigma[j] * X[n - 1][j] * wdiff[n][j];
+				X[n][d] = X[n - 1][d] + (r - delta) * X[n - 1][d] * dt + sigma[d] * X[n - 1][d] * wdiff[n][d];
 			if (PfadModell == CIR)
-				X[n][j] = max(X[n - 1][j] + kappa * (theta - X[n - 1][j]) * dt + sigma[j] * sqrt(X[n - 1][j]) * wdiff[n][j], 0); //mean reversion
+				X[n][d] = max(X[n - 1][d] + kappa * (theta - X[n - 1][d]) * dt + sigma[d] * sqrt(X[n - 1][d]) * wdiff[n][d], 0); //mean reversion
+			if (PfadModell == ITOrho)
+			{
+				if(D==2){
+					//	[,1]      [,2]
+					//[1,]    1 0.3000000
+					//[2,]    0 0.9539392
+					double z[2];
+					z[0]=wdiff[n][0]+0.3*wdiff[n][1];
+					z[1]=0.9539392*wdiff[n][1];
+					X[n][d] = X[n - 1][d] * exp((((r - delta) - 0.5 * sigma[d] * sigma[d]) * dt + sigma[d] * z[d]));
+				}
+				else printf("Error 848");
+			}
 			//if (PfadModell == JDI)
 			//	X[n][j] = X[n - 1][j] * exp(((r - delta) - 0.5 * sigma[j] * sigma[j]) * dt + sigma[j] * wdiff[n][j]) * exp(sprue[n][j]);
 			//	//			X[n][j] = max( X[n - 1][j] + (r-delta) *X[n-1][j]*dt + sigma[j] *X[n-1][j]*wdiff[n][j] +X[n - 1][j] *sprue[n][j],0);

@@ -24,8 +24,6 @@ void Test(){
 }
 
 int main( int argc, char* args[]) {
-
-	printf("testzahl: %f\n",40.*(3>-100));
 	int runden=1;
 	AmericanOption AMO;
 
