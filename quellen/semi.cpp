@@ -318,8 +318,6 @@ void AmericanOption::semi() {
 				printf("fork minimum %f \n",min);
 			}
 
-
-
 		}
 		//Durchschnitt als Ergebniss nehmen
 		for (int m = 0; m < Mphi; ++m) {
@@ -580,7 +578,7 @@ void AmericanOption::semi_testThread(int threadnummer) {
 	double diff_ergs[D];
 	double grad[D];
 	double** x = DoubleFeld(N, D);
-	double *** y =DoubleFeld(D,N,D);
+//	double *** y =DoubleFeld(D,N,D);
 	int seed = time(NULL) +threadnummer + getpid();
 	srand(seed);
 	int durchlaeufe = (int)(double)(semi_testingpaths) / (double)(Threadanzahl);
@@ -591,21 +589,24 @@ void AmericanOption::semi_testThread(int threadnummer) {
 			for(int d=0;d<D;++d)
 				wdiff[n][d]=sqrt(dt)*generator.nextGaussian();
 		Pfadgenerieren(x, wdiff,0,X0);
-		for(int d=0;d<D;++d)
-		{
-			X0[d]*=1.0001;
-			Pfadgenerieren(y[d],wdiff,0,X0);
-			X0[d]/=1.0001;
-		}
+//		for(int d=0;d<D;++d)
+//		{
+//			X0[d]*=1.00001;
+//			Pfadgenerieren(y[d],wdiff,0,X0);
+//			X0[d]/=1.00001;
+//		}
 
 		for (int n = 0; n < N; ++n){
 			double a= semi_f(n, x[n]);
 			erg += a;
 			for(int d=0;d<D;++d)
-				diff_ergs[d]+= (semi_f(n, y[d][n])-a)/(0.0001*X0[d]);
-
-			//	for(int d=0;d<D;++d)
-			//	grad[d]+=semi_f_Abl(n, x[n],d) * x[n][d]/ X0[d];
+			{
+				x[n][d]*=1.0001;
+				diff_ergs[d]+= (semi_f(n, x[n])-a)/(0.0001*X0[d]);
+				x[n][d]/=1.0001;
+			}
+			for(int d=0;d<D;++d)
+				grad[d]+=semi_f_Abl(n, x[n],d) * x[n][d]/X0[d];
 		}
 		deleteDoubleFeld(wdiff,N,D);
 	}
@@ -615,7 +616,7 @@ void AmericanOption::semi_testThread(int threadnummer) {
 		semi_ergebnisse_grad[d][threadnummer]=grad[d]/(double)(durchlaeufe);
 	}
 	deleteDoubleFeld(x,N,D);
-	deleteDoubleFeld(y,D,N,D);
+//	deleteDoubleFeld(y,D,N,D);
 }
 
 void AmericanOption::semi_testing() {
@@ -659,6 +660,7 @@ void AmericanOption::semi_testing() {
 		printf("%f, ",grad_diff[d]);
 	printf("\n;");
 	ErgebnisAnhaengen(erg,(char*)"ergebnisse_semi.txt");
+	ErgebnisAnhaengen(grad_diff[0],(char*)"ergebnisse_semi_Delta1.txt");
 }
 
 void AmericanOption::stuetzpunkte_ausgeben()

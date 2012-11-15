@@ -3,7 +3,7 @@
 using namespace std;
 
 void AmericanOption::Daten(){
-	int Example=103;
+	int Example=101;
 
 	X0=(double*)malloc(sizeof(double)*100);
 	sigma=(double*)malloc(sizeof(double)*100);
@@ -14,7 +14,7 @@ void AmericanOption::Daten(){
 		//	PfadModell=EULER;
 		option=MIN_PUT;
 		delta=0;
-		X0[0] = 110.;      		//Spot
+		X0[0] = 40.;      		//Spot
 		Strike = 100.; 			//Ausuebungspreis
 		r = 0.06;   			//interest rate
 		sigma[0] = 0.4;  		//Volatility
@@ -74,7 +74,6 @@ void AmericanOption::Daten(){
 		K5=0;
 		M=20000;
 	}
-
 
 	if(Example==103){					//Glasserman Example MaxCall
 			PfadModell=ITOrho;
