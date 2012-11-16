@@ -3,7 +3,7 @@
 using namespace std;
 
 void AmericanOption::Daten(){
-	int Example=101;
+	int Example=103;
 
 	X0=(double*)malloc(sizeof(double)*100);
 	sigma=(double*)malloc(sizeof(double)*100);
@@ -37,13 +37,13 @@ void AmericanOption::Daten(){
 			option=MIN_PUT;
 			delta=0;
 			X0[0] = 40.;      		//Spot
-			Strike = 35.; 			//Ausuebungspreis
+			Strike = 45.; 			//Ausuebungspreis
 			r = 0.0488;   			//interest rate
 			sigma[0] = 0.2;  		//Volatility
 			T = 1./3.; 			//Gesamtzeit
-			Testing_Dates=50;
-			Training_Dates=50;
-			N =50;  			//time discretization
+			Testing_Dates=20;
+			Training_Dates=20;
+			N =20;  			//time discretization
 			D=1;
 			K1=20;                          // Basisfunktionen fuer
 			K2=0;                           // BFGS und Nesterov
@@ -79,19 +79,19 @@ void AmericanOption::Daten(){
 			PfadModell=ITOrho;
 			option=MAX_CALL;
 			delta=0.1;
-			D=2;
+			D=3;
 			rho=0.3;
 			for(int j=0;j<D;++j)
 			{
-				X0[j]=100.;
+				X0[j]=110.;
 				sigma[j]=0.2;
 			}
 			Strike = 100.;
 			r = 0.05;
 			T = 1;
-			Testing_Dates=10;
-			Training_Dates=10;
-			N = 10;
+			Testing_Dates=4;
+			Training_Dates=4;
+			N = 4;
 			K1=15;
 			K2=15;
 			K3=15;
@@ -228,5 +228,5 @@ void AmericanOption::Daten(){
 //	}
 
         BFGS_Nesterov_Intervals=1;
-	Threadanzahl=15;
+	Threadanzahl=8;
 }

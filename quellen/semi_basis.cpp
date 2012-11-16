@@ -63,6 +63,16 @@ double AmericanOption::semi_Basisfunktionen2D(int zeit, int j, double* x) {
 		return payoff(x, zeit);
 	j -= 7;
 
+	if (j <1000){
+		return max((x[0] + x[1]) -  j / 1000. *4* X0[0], 0);
+	}
+	j -= 1000;
+
+if (j <1000){
+		return max(fabs(x[0] - x[1])-  j / 1000. * X0[0], 0);//Achtung fabs(x[0] - x[1])
+	}
+	j -= 1000;
+
 	if (j < 1000) {
 		double xx[2];
 		xx[0] = j / 1000. * 2. * x[0];
@@ -71,15 +81,9 @@ double AmericanOption::semi_Basisfunktionen2D(int zeit, int j, double* x) {
 	}
 	j -= 1000;
 
-	if (j <1000){
-		return max((x[0] + x[1]) -  j / 1000. *4* X0[0], 0);
-	}
-	j -= 1000;
 
-	if (j <1000){
-		return max(fabs(x[0] - x[1])-  j / 1000. * X0[0], 0);//Achtung fabs(x[0] - x[1])
-	}
-	j -= 1000;
+
+
 
 	printf("Error 653 \n");return -1;
 }

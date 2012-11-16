@@ -86,13 +86,13 @@ double* AmericanOption::payoffAbl(double* x, int time) {
 	if (option == MIN_PUT)
 	{
 		for(int d=0;d<D;++d)
-			if(x[d]==Min(x,D))grad[d]=-1;
+			if(x[d]==Min(x,D) && x[d]<=Strike)grad[d]=-1.* exp(-r * dt * (double) (time));
 		return grad;
 	}
 	if (option == MAX_CALL)
 	{
 		for(int d=0;d<D;++d)
-			if(x[d]==Max(x,D))grad[d]=1;
+			if(x[d]==Max(x,D) && x[d]>=Strike)grad[d]=1.* exp(-r * dt * (double) (time));
 		return grad;
 	}
 	printf("ERROR, option unknown!\n");
@@ -168,15 +168,25 @@ void AmericanOption::Pfadgenerieren(double** X, double** wdiff, int start, doubl
 			if (PfadModell == ITOrho)
 			{
 				if(D==2){
-					//	[,1]      [,2]
-					//[1,]    1 0.3000000
-					//[2,]    0 0.9539392
+//				     [,1]      [,2]
+//				[1,]  1.0 0.0000000
+//				[2,]  0.3 0.9539392
 					double z[2];
-					z[0]=wdiff[n][0]+0.3*wdiff[n][1];
-					z[1]=0.9539392*wdiff[n][1];
+					z[1]=wdiff[n][0];
+					z[0]=0.3*wdiff[n][0]+0.9539392*wdiff[n][1];
 					X[n][d] = X[n - 1][d] * exp((((r - delta) - 0.5 * sigma[d] * sigma[d]) * dt + sigma[d] * z[d]));
 				}
-				else printf("Error 848");
+				if(D==3){
+//				     [,1]      [,2]     [,3]
+//				[1,]  1.0 0.0000000 0.000000
+//				[2,]  0.3 0.9539392 0.000000
+//				[3,]  0.3 0.2201398 0.928191
+									double z[3];
+									z[0]=wdiff[n][0];
+									z[1]=0.3*wdiff[n][0]+0.9539392*wdiff[n][1];
+									z[2]=0.3*wdiff[n][0]+0.2201398*wdiff[n][1]+0.928191*wdiff[n][2];
+									X[n][d] = X[n - 1][d] * exp((((r - delta) - 0.5 * sigma[d] * sigma[d]) * dt + sigma[d] * z[d]));
+								}
 			}
 			//if (PfadModell == JDI)
 			//	X[n][j] = X[n - 1][j] * exp(((r - delta) - 0.5 * sigma[j] * sigma[j]) * dt + sigma[j] * wdiff[n][j]) * exp(sprue[n][j]);
