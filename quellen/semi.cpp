@@ -169,7 +169,7 @@ void AmericanOption::semi() {
 	if (D > 2) {
 		Mphi = 1+3+D*2+(D-1)+1+2+7000; //+7000
 		J = 200; //200
-		M = 10000; //10000
+		M = 20000; //10000
 		faktor=2;  //2
 		L=100; //100
 		durchlaeufe = 1;  //1
