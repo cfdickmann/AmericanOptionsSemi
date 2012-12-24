@@ -161,7 +161,7 @@ void AmericanOption::semi() {
 		J = 200; //200 // Stuetzpunkte
 		M = 10000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
 		faktor=2;  //2
-		L=3;      //10
+		L=10;      //10
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 1
 		semi_testingpaths = 1e6; // Testingpaths 1e6
 	}
