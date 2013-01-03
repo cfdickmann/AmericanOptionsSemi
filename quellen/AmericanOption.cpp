@@ -16,6 +16,7 @@ AmericanOption::AmericanOption() {
 	Iterations_Nummer = 0;
 	antithetics = verbose = loadAlphas = false;
 	parallelTest = nesterov = extremTest = false;
+	zehnmal=false;
 	semiinf = speedup = andersenbroadie = false;
 	bfgs = testing = longstaffschwarz = false;
 	Daten();

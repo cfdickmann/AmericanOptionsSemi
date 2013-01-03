@@ -56,6 +56,7 @@ int main( int argc, char* args[]) {
 		if(! arg.compare("-loadAlphas"))            {geaendert=true;AMO.loadAlphas=true;}
 		if(! arg.compare("-zehnmal"))               {geaendert=true;runden=10;};
 		if(! arg.compare("-fuenfzigmal"))           {geaendert=true;runden=50;};
+		if(! arg.compare("-10T"))           {geaendert=true;AMO.zehnmal=true;};
 		if(! arg.compare("-hundertmal"))            {geaendert=true;runden=100;};
 		if(! arg.compare("-speedup"))               {geaendert=true;AMO.speedup=true;}
 		if(! arg.compare("-BFGS"))                  {geaendert=true;AMO.bfgs=true;}

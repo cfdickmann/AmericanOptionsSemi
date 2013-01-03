@@ -95,6 +95,7 @@ public:
 	bool longstaffschwarz;
 	bool andersenbroadie;
 	bool speedup;
+	bool zehnmal;
 	bool bfgs;
 	bool loadAlphas;
 	bool nesterov;
@@ -224,7 +225,7 @@ public:
 	int * semi_betas_index_max;
 	//        double* LP_mitR_Loesen();
 	//        double* LP_mitALGLIB_Loesen();
-	double* LP_mitGLPK_Loesen(double ** Matrix, double * RS);
+	double* LP_mitGLPK_Loesen(double ** Matrix, bool kleinergleich, double * RS);
 	void semi_testing();
 	void semi_testThread(int threadnummer);
 	int semi_testingpaths;

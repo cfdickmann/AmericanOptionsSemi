@@ -654,7 +654,91 @@ double* LGSloesen(double** AA, double* bb, int Mphi){
 //        return P;
 //    }
 
+/*
+for (int i = 0; i < durchlaeufe; ++i) {
+			durchlaufactual = i;
+
+			printf("Erwartungen ausrechnen\n");cout.flush();
+			stuetzerwartung_ausrechnen();
+
+			if (verbose)stuetzpunkte_ausgeben();
+			double* temp_koeff;
+			double min=99999999;
+
+			for (int m = 0; m < Mphi; ++m)
+				for (int j = 0; j < J; ++j)
+					Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
 
 
+			int** ergebnispipe=IntFeld(L,2);
+			for(int z=0;z<L;++z)
+				pipe(ergebnispipe[z]);
+//			int** koeffpipe=IntFeld(L*Mphi,2);
+	//		for(int z=0;z<L*Mphi;++z)
+		//		pipe(koeffpipe[z]);
+			int pid;
+			for(lauf=0;lauf<L;++lauf){
+
+				pid=fork();
+				if(pid==0){
+					int number_active=0;
+					RNG gene;
+					for(int j=0;j<J;++j)
+						if(gene.nextUnif()<1./(double) faktor){
+							stuetzstelle_active[j]=true;
+							number_active++;
+						}else
+							stuetzstelle_active[j]=false;
 
 
+									temp_koeff = LP_mitGLPK_Loesen(Matrix, stuetzerwartung);
+					//
+					//
+					//
+
+									double testergebnis=koeff_testen(temp_koeff);
+					//
+				//		for(int m=0;m<Mphi;++m)
+			//		InPipeSchreiben(koeffpipe[10*lauf+m],temp_koeff[m]);
+					//
+					InPipeSchreiben(ergebnispipe[lauf],testergebnis);
+
+					//				printf("Optimierung %d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
+
+					//				if(testergebnis<min)
+					//				{
+					//					deleteDoubleFeld(semi_betas_Feld[i],Mphi);
+					//					semi_betas_Feld[i] = temp_koeff;
+					//					min=testergebnis;
+					//				}else
+					//					deleteDoubleFeld(temp_koeff,Mphi);
+					exit(0);
+				}
+			}
+			for(int t=0;t<L;++t)
+			{
+				double e=AusPipeLesen(ergebnispipe[t]);
+				printf(" Ergebnis %d: %f\n",t,e);
+					double* min_koeff=DoubleFeld(Mphi);
+//				for(int m=0;m<Mphi;++m)
+//				min_koeff[m]=AusPipeLesen(koeffpipe[L*t+m]);
+				//for(int m=0;m<Mphi;++m)
+				//printf("nurmal %f \n",min_koeff[m]);
+				//exit(0);
+				if(e<min){
+					//									for(int m=0;m<Mphi;++m)
+					//									semi_betas_Feld[i][m]=min_koeff[m];
+					min=e;
+				}
+										deleteDoubleFeld(min_koeff,Mphi);
+			}
+			printf("fork minimum %f \n",min);
+			deleteIntFeld(ergebnispipe,L,2);
+
+//			deleteIntFeld(koeffpipe,L*Mphi,2);
+
+			printf("Minimum: %f\n",min);
+			training+=min;
+		}
+
+*/

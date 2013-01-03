@@ -167,7 +167,7 @@ void AmericanOption::semi() {
 	}
 
 	if (D > 2) {
-		Mphi = 1+3+D*2+(D-1)+1+2+4000; //+7000
+		Mphi = 1+3+D*2+(D-1)+1+2+7000; //+7000
 		J = 200; //200
 		M = 10000; //10000
 		faktor=2;  //2
@@ -246,6 +246,7 @@ void AmericanOption::semi() {
 		}
 
 		double** semi_betas_Feld = DoubleFeld(durchlaeufe, Mphi);
+		double** semi_betas_Feld2 = DoubleFeld(durchlaeufe, Mphi);
 		for (int i = 0; i < durchlaeufe; ++i) {
 			durchlaufactual = i;
 
@@ -254,8 +255,9 @@ void AmericanOption::semi() {
 
 			if (verbose)stuetzpunkte_ausgeben();
 			double* temp_koeff;
+			double* temp_koeff2;
 			double min=99999999;
-
+double max=-9999999;
 			for (int m = 0; m < Mphi; ++m)
 				for (int j = 0; j < J; ++j)
 					Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
@@ -268,10 +270,15 @@ void AmericanOption::semi() {
 					}else
 						stuetzstelle_active[j]=false;
 
-				temp_koeff = LP_mitGLPK_Loesen(Matrix, stuetzerwartung);
+				temp_koeff = LP_mitGLPK_Loesen(Matrix,true, stuetzerwartung);
+
+				temp_koeff2 = LP_mitGLPK_Loesen(Matrix,false, stuetzerwartung);
 
 				double testergebnis=koeff_testen(temp_koeff);
-				printf("Optimierung %d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
+				double testergebnis2=koeff_testen(temp_koeff2);
+				printf("Optimierung (min)%d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
+				printf("Optimierung (max)%d, (%d Stellen aktiv):\t\t %f\n",lauf,number_active,testergebnis2);
+
 				if(testergebnis<min)
 				{
 					deleteDoubleFeld(semi_betas_Feld[i],Mphi);
@@ -279,15 +286,23 @@ void AmericanOption::semi() {
 					min=testergebnis;
 				}else
 					deleteDoubleFeld(temp_koeff,Mphi);
+				if(testergebnis2>max)
+				{
+					deleteDoubleFeld(semi_betas_Feld2[i],Mphi);
+					semi_betas_Feld2[i] = temp_koeff2;
+					max=testergebnis2;
+				}else
+					deleteDoubleFeld(temp_koeff2,Mphi);
 			}
 			printf("Minimum: %f\n",min);
+			printf("Maximum: %f\n",max);
 			training+=min;
 		}
 		//Durchschnitt als Ergebniss nehmen
 		for (int m = 0; m < Mphi; ++m) {
 			semi_betas[n][m] = 0;
 			for (int i = 0; i < durchlaeufe; ++i)
-				semi_betas[n][m] += semi_betas_Feld[i][m] / (double) durchlaeufe;
+				semi_betas[n][m] += 0.5*semi_betas_Feld[i][m] / (double) durchlaeufe + 0.5* semi_betas_Feld2[i][m] / (double) durchlaeufe  ;
 		}
 		int indexlauf = 0;
 		for (int m = 0; m < Mphi; ++m)
@@ -300,6 +315,7 @@ void AmericanOption::semi() {
 		printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
 		if (verbose)semi_ergebnisse_ausgeben();
 		deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
+		deleteDoubleFeld(semi_betas_Feld2,durchlaeufe, Mphi);
 		//exit(0);
 	}
 
@@ -661,7 +677,7 @@ void AmericanOption::stuetzpunkte_ausgeben()
 	}
 }
 
-double* AmericanOption::LP_mitGLPK_Loesen(double** Matrix, double* RS) {
+double* AmericanOption::LP_mitGLPK_Loesen(double** Matrix, bool kleinergleich, double* RS) {
 	time_t time1 = time(NULL);
 	//	for (int m = 0; m < Mphi; ++m)
 	//		for (int j = 0; j < J; ++j)
@@ -677,6 +693,7 @@ double* AmericanOption::LP_mitGLPK_Loesen(double** Matrix, double* RS) {
 		for (int j = 0; j < J; ++j)
 			if(stuetzstelle_active[j])
 				C[m] += semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
+		if(!kleinergleich)C[m]*=-1;
 	}
 
 	if(verbose)printf("Optimization aufstellen time:%ld seconds\n", time(NULL) - time1);
@@ -689,8 +706,12 @@ double* AmericanOption::LP_mitGLPK_Loesen(double** Matrix, double* RS) {
 
 	glp_add_rows(lp, J);
 
-	for (int j = 0; j < J; ++j)
-		glp_set_row_bnds(lp, j + 1, GLP_UP, 0.0, RS[j]);
+	for (int j = 0; j < J; ++j){
+		if(kleinergleich)
+			glp_set_row_bnds(lp, j + 1, GLP_UP, 0.0, RS[j]);
+		else
+			glp_set_row_bnds(lp, j + 1, GLP_LO, RS[j],10000000);
+	}
 
 	//Zielfunktional uebergeben
 	glp_add_cols(lp, Mphi);
