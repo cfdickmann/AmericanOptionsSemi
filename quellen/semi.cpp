@@ -54,7 +54,7 @@ void AmericanOption::inner_paths_erzeugen_THREAD(int threadnummer){
 							if(lauf%2==1)
 								wdiff[n][d]=sqrt(dt)*generator.nextGaussian();
 							else wdiff[n][d]*=-1.;
-					Pfadgenerieren(semi_inner_paths[u][j][m],wdiff, 0, stuetzpunkte[j]);
+					Pfadgenerieren(semi_inner_paths[u][j][m],wdiff, 0,N, stuetzpunkte[j]);
 				}
 	deleteDoubleFeld(wdiff,N,D);
 }
@@ -161,13 +161,13 @@ void AmericanOption::semi() {
 		J = 200; //200 // Stuetzpunkte
 		M = 10000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
 		faktor=2;  //2
-		L=30;      //10
+		L=10;      //10
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 1
-		semi_testingpaths = 1e6; // Testingpaths 1e6
+		semi_testingpaths = 1e5; // Testingpaths 1e6
 	}
 
 	if (D > 2) {
-		Mphi = 1+3+D*2+(D-1)+1+2+7000; //+7000
+		Mphi = 1+3+D*2+(D-1)+1+2+4000; //+7000
 		J = 200; //200
 		M = 10000; //10000
 		faktor=2;  //2
@@ -203,7 +203,6 @@ void AmericanOption::semi() {
 	stuetzstelle_active=new bool[J];
 	Matrix = DoubleFeld(J, Mphi);
 	C = DoubleFeld(Mphi);
-	RS = stuetzerwartung;
 
 	nactual=N-1;
 	double training=koeff_testen(NULL);
@@ -220,7 +219,28 @@ void AmericanOption::semi() {
 		nactual = n;
 
 		if(D>1){
+
+			//			printf("innere Pfade teilen\n");cout.flush();
+			//			if(n!=N-2)
+			//				for(int durch=0;durch<durchlaeufe;durch++)
+			//				for(int j=0;j<J;++j)
+			//					for(int m=0;m<M;++m)
+			//						for(int n=0;n<N;++n)
+			//							for(int d=0;d<D;++d)
+			//								semi_inner_paths[durch][j][m][n][d]/=stuetzpunkte[j][d];
+
+			printf("Stuetzstellen setzen\n");cout.flush();
 			stuetzpunkte_setzen(nactual);
+
+			//			printf("innere Pfade multiplizieren\n");cout.flush();
+			//			if(n!=N-2)
+			//				for(int durch=0;durch<durchlaeufe;durch++)
+			//					for(int j=0;j<J;++j)
+			//						for(int m=0;m<M;++m)
+			//							for(int n=0;n<N;++n)
+			//								for(int d=0;d<D;++d)
+			//									semi_inner_paths[durch][j][m][n][d]*=stuetzpunkte[j][d];
+			//			if(n==N-2)
 			semi_inner_paths_erzeugen();
 			//		stuetzpunkte_ausrichten();
 		}
@@ -229,102 +249,39 @@ void AmericanOption::semi() {
 		for (int i = 0; i < durchlaeufe; ++i) {
 			durchlaufactual = i;
 
-			//Stuetzerwartung ausrechnen
+			printf("Erwartungen ausrechnen\n");cout.flush();
 			stuetzerwartung_ausrechnen();
+
 			if (verbose)stuetzpunkte_ausgeben();
 			double* temp_koeff;
-			//bool mitForks=true;
-			//if(!mitForks)
-			{//Nicht ganz parallel
-				double min=99999999;
-				for(lauf=0;lauf<L;++lauf){
-					int number_active=0;
-					for(int j=0;j<J;++j)
-						if(rand()%faktor==0){
-							stuetzstelle_active[j]=true;
-							number_active++;
-						}else
-							stuetzstelle_active[j]=false;
+			double min=99999999;
 
-					temp_koeff = LP_mitGLPK_Loesen();
-
-					double testergebnis=koeff_testen(temp_koeff);
-					printf("Optimierung %d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
-					if(testergebnis<min)
-					{
-						deleteDoubleFeld(semi_betas_Feld[i],Mphi);
-						semi_betas_Feld[i] = temp_koeff;
-						min=testergebnis;
+			for (int m = 0; m < Mphi; ++m)
+				for (int j = 0; j < J; ++j)
+					Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
+			for(lauf=0;lauf<L;++lauf){
+				int number_active=0;
+				for(int j=0;j<J;++j)
+					if(rand()%faktor==0){
+						stuetzstelle_active[j]=true;
+						number_active++;
 					}else
-						deleteDoubleFeld(temp_koeff,Mphi);
-				}
-				printf("Minimum: %f\n",min);
-				training+=min;
-			}
+						stuetzstelle_active[j]=false;
 
-			//else
-			if(false)
-			{// mit Forks
-				//printf("Error 735: not implemented yet\n");
-				printf("mit Forks!\n");
-				int** ergebnispipe=IntFeld(10,2);
-				for(int z=0;z<10;++z)
-					pipe(ergebnispipe[z]);
-				int** koeffpipe=IntFeld(10*Mphi,2);
-				for(int z=0;z<10*Mphi;++z)
-					pipe(koeffpipe[z]);
+				temp_koeff = LP_mitGLPK_Loesen(Matrix, stuetzerwartung);
 
-				for(int t=0;t<10;++t)
+				double testergebnis=koeff_testen(temp_koeff);
+				printf("Optimierung %d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
+				if(testergebnis<min)
 				{
-					int pid = fork();
-					if (pid == 0)
-					{
-						srand(time(NULL)+pid+rand()+t);
-						int number_active=0;
-						for(int j=0;j<J;++j)
-							if(rand()%faktor==0){
-								stuetzstelle_active[j]=true;
-								number_active++;
-							}else
-								stuetzstelle_active[j]=false;
-						temp_koeff = LP_mitGLPK_Loesen();
-						for(int m=0;m<Mphi;++m)
-							printf("nurmal %f \n",temp_koeff[m]);
-						double testergebnis=koeff_testen(temp_koeff);
-						printf("Optimierung %d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
-
-						for(int m=0;m<Mphi;++m)
-							InPipeSchreiben(koeffpipe[10*t+m],temp_koeff[m]);
-
-						InPipeSchreiben(ergebnispipe[t],testergebnis);
-						exit (0);
-					}
-					else if (pid < 0)
-					{
-						fprintf (stderr, "Error 348");
-						exit(1);
-					}
-				}
-				double min=1000000000;
-				for(int t=0;t<10;++t)
-				{
-					double e=AusPipeLesen(ergebnispipe[t]);
-					double* min_koeff=DoubleFeld(Mphi);
-					for(int m=0;m<Mphi;++m)
-						min_koeff[m]=AusPipeLesen(koeffpipe[10*t+m]);
-					for(int m=0;m<Mphi;++m)
-						printf("nurmal %f \n",min_koeff[m]);
-					exit(0);
-					if(e<min){
-						for(int m=0;m<Mphi;++m)
-							semi_betas_Feld[i][m]=min_koeff[m];
-						min=e;
-					}
-					deleteDoubleFeld(min_koeff,Mphi);
-				}
-				printf("fork minimum %f \n",min);
+					deleteDoubleFeld(semi_betas_Feld[i],Mphi);
+					semi_betas_Feld[i] = temp_koeff;
+					min=testergebnis;
+				}else
+					deleteDoubleFeld(temp_koeff,Mphi);
 			}
-
+			printf("Minimum: %f\n",min);
+			training+=min;
 		}
 		//Durchschnitt als Ergebniss nehmen
 		for (int m = 0; m < Mphi; ++m) {
@@ -536,7 +493,7 @@ void AmericanOption::stuetzpunkte_setzen(int n) {
 	//	bool gefaechert=false;
 
 	if (D >1) {
-		printf("zufaellige Stuetzstellen\n");
+		printf("zufaellige Stuetzstellen\n");cout.flush();
 		RNG generator;
 		double startwert[D];
 		double** X = DoubleFeld(N, D);
@@ -560,8 +517,8 @@ void AmericanOption::lp_ausgeben() {
 			printf("\n");
 		}
 		printf("RS ausgeben\n");
-		for (int j = 0; j < J; ++j)
-			printf("%.3lf, ", RS[j]);
+		//	for (int j = 0; j < J; ++j)
+		//	printf("%.3lf, ", RS[j]);
 		printf("\n");
 		printf("Funktional Koeff. ausgeben\n");
 		for (int j = 0; j < Mphi; ++j)
@@ -704,14 +661,16 @@ void AmericanOption::stuetzpunkte_ausgeben()
 	}
 }
 
-double* AmericanOption::LP_mitGLPK_Loesen() {
+double* AmericanOption::LP_mitGLPK_Loesen(double** Matrix, double* RS) {
 	time_t time1 = time(NULL);
-	for (int m = 0; m < Mphi; ++m)
-		for (int j = 0; j < J; ++j)
-			if(stuetzstelle_active[j])
-				Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
-			else
-				Matrix[j][m]=0;
+	//	for (int m = 0; m < Mphi; ++m)
+	//		for (int j = 0; j < J; ++j)
+	//			if(stuetzstelle_active[j])
+	//				Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
+	//			else
+	//				Matrix[j][m]=0;
+	//
+	double* C=new double[Mphi];
 
 	for (int m = 0; m < Mphi; ++m) {
 		C[m] = 0;
@@ -751,7 +710,7 @@ double* AmericanOption::LP_mitGLPK_Loesen() {
 		for (int j = 0; j < Mphi; j++) {
 			ia[zaehler] = i + 1;
 			ja[zaehler] = j + 1;
-			ar[zaehler] = Matrix[i][j];
+			ar[zaehler] = (stuetzstelle_active[i]==true)*Matrix[i][j];
 			zaehler++;
 		}
 
@@ -1626,3 +1585,127 @@ for (int i = 0; i < 10; ++i)
 //		deleteDoubleFeld(abstaende,J);
 //		deleteIntFeld(index,J);
 
+
+//else
+//else
+//			if(false)
+//			{// mit Forks
+//				//printf("Error 735: not implemented yet\n");
+//				printf("mit Forks!\n");
+//				int** ergebnispipe=IntFeld(10,2);
+//				for(int z=0;z<10;++z)
+//					pipe(ergebnispipe[z]);
+//				int** koeffpipe=IntFeld(10*Mphi,2);
+//				for(int z=0;z<10*Mphi;++z)
+//					pipe(koeffpipe[z]);
+//
+//				for(int t=0;t<10;++t)
+//				{
+//					int pid = fork();
+//					if (pid == 0)
+//					{
+//						srand(time(NULL)+pid+rand()+t);
+//						int number_active=0;
+//						for(int j=0;j<J;++j)
+//							if(rand()%faktor==0){
+//								stuetzstelle_active[j]=true;
+//								number_active++;
+//							}else
+//								stuetzstelle_active[j]=false;
+//						temp_koeff = LP_mitGLPK_Loesen( stuetzerwartung);
+//						for(int m=0;m<Mphi;++m)
+//							printf("nurmal %f \n",temp_koeff[m]);
+//						double testergebnis=koeff_testen(temp_koeff);
+//						printf("Optimierung %d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
+//
+//						for(int m=0;m<Mphi;++m)
+//							InPipeSchreiben(koeffpipe[10*t+m],temp_koeff[m]);
+//
+//						InPipeSchreiben(ergebnispipe[t],testergebnis);
+//						exit (0);
+//					}
+//					else if (pid < 0)
+//					{
+//						fprintf (stderr, "Error 348");
+//						exit(1);
+//					}
+//				}
+//				double min=1000000000;
+//				for(int t=0;t<10;++t)
+//				{
+//					double e=AusPipeLesen(ergebnispipe[t]);
+//					double* min_koeff=DoubleFeld(Mphi);
+//					for(int m=0;m<Mphi;++m)
+//						min_koeff[m]=AusPipeLesen(koeffpipe[10*t+m]);
+//					for(int m=0;m<Mphi;++m)
+//						printf("nurmal %f \n",min_koeff[m]);
+//					exit(0);
+//					if(e<min){
+//						for(int m=0;m<Mphi;++m)
+//							semi_betas_Feld[i][m]=min_koeff[m];
+//						min=e;
+//					}
+//					deleteDoubleFeld(min_koeff,Mphi);
+//				}
+//				printf("fork minimum %f \n",min);
+//			}if(false)
+//			{// mit Forks
+//				//printf("Error 735: not implemented yet\n");
+//				printf("mit Forks!\n");
+//				int** ergebnispipe=IntFeld(10,2);
+//				for(int z=0;z<10;++z)
+//					pipe(ergebnispipe[z]);
+//				int** koeffpipe=IntFeld(10*Mphi,2);
+//				for(int z=0;z<10*Mphi;++z)
+//					pipe(koeffpipe[z]);
+//
+//				for(int t=0;t<10;++t)
+//				{
+//					int pid = fork();
+//					if (pid == 0)
+//					{
+//						srand(time(NULL)+pid+rand()+t);
+//						int number_active=0;
+//						for(int j=0;j<J;++j)
+//							if(rand()%faktor==0){
+//								stuetzstelle_active[j]=true;
+//								number_active++;
+//							}else
+//								stuetzstelle_active[j]=false;
+//						temp_koeff = LP_mitGLPK_Loesen( stuetzerwartung);
+//						for(int m=0;m<Mphi;++m)
+//							printf("nurmal %f \n",temp_koeff[m]);
+//						double testergebnis=koeff_testen(temp_koeff);
+//						printf("Optimierung %d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
+//
+//						for(int m=0;m<Mphi;++m)
+//							InPipeSchreiben(koeffpipe[10*t+m],temp_koeff[m]);
+//
+//						InPipeSchreiben(ergebnispipe[t],testergebnis);
+//						exit (0);
+//					}
+//					else if (pid < 0)
+//					{
+//						fprintf (stderr, "Error 348");
+//						exit(1);
+//					}
+//				}
+//				double min=1000000000;
+//				for(int t=0;t<10;++t)
+//				{
+//					double e=AusPipeLesen(ergebnispipe[t]);
+//					double* min_koeff=DoubleFeld(Mphi);
+//					for(int m=0;m<Mphi;++m)
+//						min_koeff[m]=AusPipeLesen(koeffpipe[10*t+m]);
+//					for(int m=0;m<Mphi;++m)
+//						printf("nurmal %f \n",min_koeff[m]);
+//					exit(0);
+//					if(e<min){
+//						for(int m=0;m<Mphi;++m)
+//							semi_betas_Feld[i][m]=min_koeff[m];
+//						min=e;
+//					}
+//					deleteDoubleFeld(min_koeff,Mphi);
+//				}
+//				printf("fork minimum %f \n",min);
+//			}

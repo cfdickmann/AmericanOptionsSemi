@@ -45,7 +45,6 @@ public:
 	AmericanOption();
 	virtual ~AmericanOption();
 
-
 	int Iterations_Nummer;
 	time_t Anfangszeit;
 	int BFGS_Iterations;
@@ -110,6 +109,8 @@ public:
 	void Pfadgenerieren(double** X, int start, double * S);
 	void Pfadgenerieren(double** X, double** wdiff, int start, double* S);
 	void Pfadgenerieren(double** X,  int start, double* S, RNG* generator);
+	void Pfadgenerieren(double** X,  int start, int ende, double* S, RNG* generator);
+	void Pfadgenerieren(double** X, double** wdiff, int start,int ende, double* S);
 	void Pfadgenerieren(double** X, double** wdiff);
 	void Pfadgenerieren(double** X);
 	void Daten();
@@ -223,7 +224,7 @@ public:
 	int * semi_betas_index_max;
 	//        double* LP_mitR_Loesen();
 	//        double* LP_mitALGLIB_Loesen();
-	double* LP_mitGLPK_Loesen();
+	double* LP_mitGLPK_Loesen(double ** Matrix, double * RS);
 	void semi_testing();
 	void semi_testThread(int threadnummer);
 	int semi_testingpaths;
@@ -241,7 +242,7 @@ public:
 	void lp_ausgeben();
 	int J;
 	double** Matrix;
-	double* RS;
+//	double* RS;
 	double* C;
 	double** stuetzpunkte;
 	double* stuetzerwartung;

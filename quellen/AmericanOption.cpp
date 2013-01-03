@@ -145,20 +145,29 @@ void AmericanOption::Pfadgenerieren(double** X, double** wdiff) {
 }
 
 void AmericanOption::Pfadgenerieren(double** X,  int start, double* S, RNG* generator) {
+Pfadgenerieren(X,start,N,S,generator);
+}
+void AmericanOption::Pfadgenerieren(double** X,  int start, int ende, double* S, RNG* generator) {
 	double** wdiff =DoubleFeld(N,D);
 	for(int n=0;n<N;++n)
 		for(int d=0;d<D;++d)
 			wdiff[n][d]=sqrt(dt)*generator->nextGaussian();
-	Pfadgenerieren(X, wdiff, 0, S);
+	Pfadgenerieren(X, wdiff, 0,ende, S);
 	deleteDoubleFeld(wdiff,N,D);
 }
 
+
 void AmericanOption::Pfadgenerieren(double** X, double** wdiff, int start, double * S) {
+Pfadgenerieren(X,wdiff,start,N,S);
+
+}
+
+	void AmericanOption::Pfadgenerieren(double** X, double** wdiff, int start, int ende, double * S) {
 	for (int d = 0; d < D; ++d)
 		X[start][d] = S[d];
 
 	for (int d = 0; d < D; ++d) {
-		for (int n = start + 1; n < N; ++n) {
+		for (int n = start + 1; n < ende; ++n) {
 			if (PfadModell == ITO)
 				X[n][d] = X[n - 1][d] * exp((((r - delta) - 0.5 * sigma[d] * sigma[d]) * dt + sigma[d] * wdiff[n][d]));
 			if (PfadModell == EULER)

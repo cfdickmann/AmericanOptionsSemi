@@ -83,7 +83,7 @@ void AmericanOption::Daten(){
 			rho=0.3;
 			for(int j=0;j<D;++j)
 			{
-				X0[j]=110.;
+				X0[j]=90.;
 				sigma[j]=0.2;
 			}
 			Strike = 100.;
@@ -104,10 +104,10 @@ void AmericanOption::Daten(){
 		PfadModell=ITO;
 		option=MAX_CALL;
 		delta=0.1;
-		D=2;
+		D=5;
 		for(int j=0;j<D;++j)
 		{
-			X0[j]=90.;
+			X0[j]=110.;
 			sigma[j]=0.2;
 		}
 		Strike = 100.;
@@ -228,5 +228,5 @@ void AmericanOption::Daten(){
 //	}
 
         BFGS_Nesterov_Intervals=1;
-	Threadanzahl=14;
+	Threadanzahl=5;
 }
