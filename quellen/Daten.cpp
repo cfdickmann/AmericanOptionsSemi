@@ -79,7 +79,7 @@ void AmericanOption::Daten(){
 			PfadModell=ITOrho;
 			option=MAX_CALL;
 			delta=0.1;
-			D=3;
+			D=2;
 			rho=0.3;
 			for(int j=0;j<D;++j)
 			{

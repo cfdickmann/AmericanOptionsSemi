@@ -171,7 +171,7 @@ void AmericanOption::semi() {
 		J = 200; //200
 		M = 10000; //10000
 		faktor=2;  //2
-		L=100; //100
+		L=20; //100
 		durchlaeufe = 1;  //1
 		semi_testingpaths = 1e5; //Testingpaths 1e6
 	}
@@ -254,13 +254,15 @@ void AmericanOption::semi() {
 			stuetzerwartung_ausrechnen();
 
 			if (verbose)stuetzpunkte_ausgeben();
-			double* temp_koeff;
-			double* temp_koeff2;
+
+
 			double min=99999999;
-double max=-9999999;
+//			double max=-9999999;
 			for (int m = 0; m < Mphi; ++m)
 				for (int j = 0; j < J; ++j)
 					Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
+			double ** temp_koeff=DoubleFeld(L,Mphi);
+			double testergebnisse[L];
 			for(lauf=0;lauf<L;++lauf){
 				int number_active=0;
 				for(int j=0;j<J;++j)
@@ -270,39 +272,50 @@ double max=-9999999;
 					}else
 						stuetzstelle_active[j]=false;
 
-				temp_koeff = LP_mitGLPK_Loesen(Matrix,true, stuetzerwartung);
+			 temp_koeff[lauf] =LP_mitGLPK_Loesen(Matrix,true, stuetzerwartung);
+			testergebnisse[lauf]=koeff_testen(temp_koeff[lauf]);
+				printf("Optimierung (min)%d,\t (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnisse[lauf]);
 
-				temp_koeff2 = LP_mitGLPK_Loesen(Matrix,false, stuetzerwartung);
-
-				double testergebnis=koeff_testen(temp_koeff);
-				double testergebnis2=koeff_testen(temp_koeff2);
-				printf("Optimierung (min)%d, (%d Stellen aktiv):\t %f\n",lauf,number_active,testergebnis);
-				printf("Optimierung (max)%d, (%d Stellen aktiv):\t\t %f\n",lauf,number_active,testergebnis2);
-
-				if(testergebnis<min)
-				{
-					deleteDoubleFeld(semi_betas_Feld[i],Mphi);
-					semi_betas_Feld[i] = temp_koeff;
-					min=testergebnis;
-				}else
-					deleteDoubleFeld(temp_koeff,Mphi);
-				if(testergebnis2>max)
-				{
-					deleteDoubleFeld(semi_betas_Feld2[i],Mphi);
-					semi_betas_Feld2[i] = temp_koeff2;
-					max=testergebnis2;
-				}else
-					deleteDoubleFeld(temp_koeff2,Mphi);
+//				double* temp_koeff2 = LP_mitGLPK_Loesen(Matrix,false, stuetzerwartung);
+//				double testergebnis2=koeff_testen(temp_koeff2);
+//				printf("Optimierung (max)%d, (%d Stellen aktiv):\t\t %f\n",lauf,number_active,testergebnis2);
+//				if(testergebnis2>max)
+//				{
+//					deleteDoubleFeld(semi_betas_Feld2[i],Mphi);
+//					semi_betas_Feld2[i] = temp_koeff2;
+//					max=testergebnis2;
+//				}else
+//					deleteDoubleFeld(temp_koeff2,Mphi);
 			}
+
+int* reihe= quicksort((double*)testergebnisse,L);
+
+for(int m=0;m<Mphi;++m)
+	semi_betas_Feld[i][m]=temp_koeff[reihe[0]][m];
+min=testergebnisse[reihe[0]];
+//			if(testergebnis<min)
+//							{
+//								deleteDoubleFeld(semi_betas_Feld[i],Mphi);
+//								semi_betas_Feld[i] = temp_koeff;
+//								min=testergebnis;
+//							}else
+//								deleteDoubleFeld(temp_koeff,Mphi);
+			deleteDoubleFeld(temp_koeff,L,Mphi);
+			deleteIntFeld(reihe,L);
 			printf("Minimum: %f\n",min);
-			printf("Maximum: %f\n",max);
+
+//			printf("Maximum: %f\n",max);
 			training+=min;
 		}
+
+
+
 		//Durchschnitt als Ergebniss nehmen
 		for (int m = 0; m < Mphi; ++m) {
 			semi_betas[n][m] = 0;
 			for (int i = 0; i < durchlaeufe; ++i)
-				semi_betas[n][m] += 0.5*semi_betas_Feld[i][m] / (double) durchlaeufe + 0.5* semi_betas_Feld2[i][m] / (double) durchlaeufe  ;
+				semi_betas[n][m] += semi_betas_Feld[i][m] / (double) durchlaeufe;
+			//+0.5* semi_betas_Feld2[i][m] / (double) durchlaeufe  ;
 		}
 		int indexlauf = 0;
 		for (int m = 0; m < Mphi; ++m)

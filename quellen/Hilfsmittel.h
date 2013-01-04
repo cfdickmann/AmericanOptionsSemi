@@ -71,5 +71,11 @@ double max(double x, double y);
 
 double CumulativeNormalDistribution(double x);
 
+void tausche(double* daten,int * reihe, int i, int k);
+int teile(double* daten,int* reihe,int links, int rechts);
+void quicksort(double* daten,int * reihe, int links, int rechts);
+int* quicksort(double* daten, int l);
+int* quicksort(double* daten, int* reihe,  int l);
+
 
 #endif /* HILFSMITTEL_H_ */
