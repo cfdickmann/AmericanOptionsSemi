@@ -13,7 +13,6 @@
 
 #include <time.h>
 #include "RNG.h"
-#include "MTRand.h"
 //#include "../src/ap.h"
 #include "math.h"
 #include "Hilfsmittel.h"
@@ -56,7 +55,7 @@ public:
 	double r; // interest rate
 	double* sigma; //Volatility
 	double T; //Gesamtzeit
-
+int L;
 	double lambdaJump; //for jumps
 	double eta; //for jumps
 	double kappa; // for mean reversion
@@ -86,19 +85,16 @@ public:
 	int* Exercise_Dates;
 	int number_of_Exercise_Dates;
 	int lauf;
-	bool antithetics;
+
 	bool verbose;
-	bool testing;
-	bool parallelTest;
+
 	bool semiinf;
 	bool extremTest;
-	bool longstaffschwarz;
-	bool andersenbroadie;
-	bool speedup;
-	bool zehnmal;
-	bool bfgs;
+
+bool zehnT;
+bool vierT;
 	bool loadAlphas;
-	bool nesterov;
+	bool verfaelscht;
 	double* zwischenwert_ohne_glaettung;
 	double zwischenwert_pene; //penelization term
 	int Threadanzahl;
@@ -106,7 +102,6 @@ public:
 	double** gradient;
 	double* sup_glatt;
 
-	MTRand MT; //MersenneTwister
 	void Pfadgenerieren(double** X, int start, double * S);
 	void Pfadgenerieren(double** X, double** wdiff, int start, double* S);
 	void Pfadgenerieren(double** X,  int start, double* S, RNG* generator);
@@ -226,6 +221,8 @@ public:
 	//        double* LP_mitR_Loesen();
 	//        double* LP_mitALGLIB_Loesen();
 	double* LP_mitGLPK_Loesen(double ** Matrix, bool kleinergleich, double * RS);
+	double* LP_mitGLPK_Loesen(double** Matrix, bool kleinergleich, double* RS, double* C, int Mphi,int J);
+
 	void semi_testing();
 	void semi_testThread(int threadnummer);
 	int semi_testingpaths;

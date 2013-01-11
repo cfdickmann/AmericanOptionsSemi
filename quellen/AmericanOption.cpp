@@ -14,11 +14,9 @@ using namespace std;
 AmericanOption::AmericanOption() {
 	BFGS_Nesterov_Intervals = 5;
 	Iterations_Nummer = 0;
-	antithetics = verbose = loadAlphas = false;
-	parallelTest = nesterov = extremTest = false;
-	zehnmal=false;
-	semiinf = speedup = andersenbroadie = false;
-	bfgs = testing = longstaffschwarz = false;
+	verbose = loadAlphas = false;
+	verfaelscht = extremTest = false;
+	semiinf =  false;
 	Daten();
 	K = BFGS_Nesterov_Intervals * (K1 + K2 + K3 + K4 + K5); //Anzahl der Basisfunktionen
 	dt = T / (double) (N - 1);
@@ -113,12 +111,12 @@ double* AmericanOption::payoffAbl(double* x, int time) {
 void AmericanOption::neueExerciseDates(int n) {
 	Exercise_Dates = (int*) malloc(sizeof (int) *(n + 1));
 	number_of_Exercise_Dates = n;
-	if (verbose && !parallelTest)printf("Exercise dates: ");
+	if (verbose )printf("Exercise dates: ");
 	for (int e = 0; e < number_of_Exercise_Dates; ++e) {
 		Exercise_Dates[e] = (int) ((double) (N - 1)*(double) (e) / (double) (number_of_Exercise_Dates - 1));
-		if (verbose && !parallelTest)printf("%f, ", (double) Exercise_Dates[e] * dt);
+		if (verbose )printf("%f, ", (double) Exercise_Dates[e] * dt);
 	}
-	if (verbose && !parallelTest)printf("\n");
+	if (verbose )printf("\n");
 }
 
 void AmericanOption::Pfadgenerieren(double** X) {
@@ -206,22 +204,6 @@ Pfadgenerieren(X,wdiff,start,N,S);
 	}
 }
 
-double AmericanOption::newSprung() {
-	return nextGaussian() * eta/*-0.5*eta*eta*/;
-}
-
-int AmericanOption::Poisson(double theta) {
-	double p = exp(-theta);
-	double F = p;
-	double N = 0;
-	double U = MT();
-	while (U > F) {
-		N++;
-		p = p * theta / N;
-		F += p;
-	}
-	return N;
-}
 
 double AmericanOption::EuropeanPut1D_discounted(double t, double T, double S, double strike) {
 	if (t >= T)return max(strike - S, 0);

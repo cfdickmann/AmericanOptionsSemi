@@ -3,7 +3,7 @@
 using namespace std;
 
 void AmericanOption::Daten(){
-	int Example=3;
+	int Example=1;
 
 	X0=(double*)malloc(sizeof(double)*100);
 	sigma=(double*)malloc(sizeof(double)*100);
@@ -14,7 +14,7 @@ void AmericanOption::Daten(){
 		//	PfadModell=EULER;
 		option=MIN_PUT;
 		delta=0;
-		X0[0] = 40.;      		//Spot
+		X0[0] = 100.;      		//Spot
 		Strike = 100.; 			//Ausuebungspreis
 		r = 0.06;   			//interest rate
 		sigma[0] = 0.4;  		//Volatility
@@ -23,12 +23,7 @@ void AmericanOption::Daten(){
 		Training_Dates=10;
 		N =10;  			//time discretization
 		D=1;
-		K1=20;                          // Basisfunktionen fuer
-		K2=0;                           // BFGS und Nesterov
-		K3=0;
-		K4=0;
-		K5=0;
-		M=15000;   		        //Number of replications fuer BFGS und Nesterov
+
 	}
 
 	if(Example==101){				//Rogers Example 1d
@@ -45,12 +40,6 @@ void AmericanOption::Daten(){
 			Training_Dates=20;
 			N =20;  			//time discretization
 			D=1;
-			K1=20;                          // Basisfunktionen fuer
-			K2=0;                           // BFGS und Nesterov
-			K3=0;
-			K4=0;
-			K5=0;
-			M=15000;   		        //Number of replications fuer BFGS und Nesterov
 		}
 
 	if(Example==2){					//Rogers Example MIN_PUT
@@ -67,12 +56,6 @@ void AmericanOption::Daten(){
 		Training_Dates=50;
 		N = 401;
 		D=2;
-		K1=15; 
-		K2=15;
-		K3=15;
-		K4=15;
-		K5=0;
-		M=20000;
 	}
 
 	if(Example==103){					//Glasserman Example MaxCall
@@ -92,12 +75,6 @@ void AmericanOption::Daten(){
 			Testing_Dates=4;
 			Training_Dates=4;
 			N = 4;
-			K1=15;
-			K2=15;
-			K3=15;
-			K4=15;
-			K5=0;
-			M=5000;
 		}
 
 	if(Example==3){					//Glasserman Example MaxCall
@@ -116,13 +93,14 @@ void AmericanOption::Daten(){
 		Testing_Dates=10;
 		Training_Dates=10;
 		N = 10;
-		K1=15;
-		K2=15;
-		K3=15;
-		K4=15;
-		K5=0;
-		M=5000;
 	}
+
+	Threadanzahl=1;
+	if(zehnT)Threadanzahl=10;
+	if(vierT)Threadanzahl=4;
+}
+
+
 //
 //	if(Example==4){					//Cuffignals Example
 //		PfadModell=ITO;
@@ -227,7 +205,4 @@ void AmericanOption::Daten(){
 //		M=8000;
 //	}
 
-        BFGS_Nesterov_Intervals=1;
-	Threadanzahl=1;
-	if(zehnmal)Threadanzahl=10;
-}
+
