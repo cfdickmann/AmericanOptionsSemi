@@ -240,7 +240,6 @@ bool vierT;
 	void lp_ausgeben();
 	int J;
 	double** Matrix;
-//	double* RS;
 	double* C;
 	double** stuetzpunkte;
 	double* stuetzerwartung;

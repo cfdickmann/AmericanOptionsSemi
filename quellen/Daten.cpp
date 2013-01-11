@@ -3,11 +3,10 @@
 using namespace std;
 
 void AmericanOption::Daten(){
-	int Example=1;
+	int Example=3;
 
-	X0=(double*)malloc(sizeof(double)*100);
-	sigma=(double*)malloc(sizeof(double)*100);
-
+	X0=new double[100];
+	sigma=new double[100];
 
 	if(Example==1){				//Rogers Example 1d
 		PfadModell=ITO;
@@ -26,56 +25,56 @@ void AmericanOption::Daten(){
 
 	}
 
-	if(Example==101){				//Rogers Example 1d
-			PfadModell=ITO;
-			//	PfadModell=EULER;
-			option=MIN_PUT;
-			delta=0;
-			X0[0] = 40.;      		//Spot
-			Strike = 45.; 			//Ausuebungspreis
-			r = 0.0488;   			//interest rate
-			sigma[0] = 0.2;  		//Volatility
-			T = 1./3.; 			//Gesamtzeit
-			Testing_Dates=20;
-			Training_Dates=20;
-			N =20;  			//time discretization
-			D=1;
-		}
+//	if(Example==101){				//Rogers Example 1d
+//			PfadModell=ITO;
+//			//	PfadModell=EULER;
+//			option=MIN_PUT;
+//			delta=0;
+//			X0[0] = 40.;      		//Spot
+//			Strike = 45.; 			//Ausuebungspreis
+//			r = 0.0488;   			//interest rate
+//			sigma[0] = 0.2;  		//Volatility
+//			T = 1./3.; 			//Gesamtzeit
+//			Testing_Dates=20;
+//			Training_Dates=20;
+//			N =20;  			//time discretization
+//			D=1;
+//		}
+//
+//	if(Example==2){					//Rogers Example MIN_PUT
+//		PfadModell=ITO;
+//		//	PfadModell=EULER;
+//		option=MIN_PUT;
+//		delta=0;
+//		X0[0] =120;  sigma[0]=0.4;
+//		X0[1]= 80; sigma[1]=0.8;
+//		Strike = 100.;
+//		r = 0.06;
+//		T = 0.5;
+//		Testing_Dates=100;
+//		Training_Dates=50;
+//		N = 401;
+//		D=2;
+//	}
 
-	if(Example==2){					//Rogers Example MIN_PUT
-		PfadModell=ITO;
-		//	PfadModell=EULER;
-		option=MIN_PUT;
-		delta=0;
-		X0[0] =120;  sigma[0]=0.4;
-		X0[1]= 80; sigma[1]=0.8;
-		Strike = 100.;
-		r = 0.06;
-		T = 0.5;
-		Testing_Dates=100;
-		Training_Dates=50;
-		N = 401;
-		D=2;
-	}
-
-	if(Example==103){					//Glasserman Example MaxCall
-			PfadModell=ITOrho;
-			option=MAX_CALL;
-			delta=0.1;
-			D=2;
-			rho=0.3;
-			for(int j=0;j<D;++j)
-			{
-				X0[j]=90.;
-				sigma[j]=0.2;
-			}
-			Strike = 100.;
-			r = 0.05;
-			T = 1;
-			Testing_Dates=4;
-			Training_Dates=4;
-			N = 4;
-		}
+//	if(Example==103){					//Glasserman Example MaxCall
+//			PfadModell=ITOrho;
+//			option=MAX_CALL;
+//			delta=0.1;
+//			D=2;
+//			rho=0.3;
+//			for(int j=0;j<D;++j)
+//			{
+//				X0[j]=90.;
+//				sigma[j]=0.2;
+//			}
+//			Strike = 100.;
+//			r = 0.05;
+//			T = 1;
+//			Testing_Dates=4;
+//			Training_Dates=4;
+//			N = 4;
+//		}
 
 	if(Example==3){					//Glasserman Example MaxCall
 		PfadModell=ITO;

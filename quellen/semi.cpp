@@ -210,6 +210,8 @@ void AmericanOption::semi() {
 
 			double min=99999999;
 			//			double max=-9999999;
+			//double (*pointer)(double*, int);
+			//pointer=&(zeiger3->payoff);
 			for (int m = 0; m < Mphi; ++m)
 				for (int j = 0; j < J; ++j)
 					Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
@@ -310,7 +312,6 @@ double AmericanOption::linearCombinationOfBasis(int zeit, double* x) {
 	}
 	return sum+0.10*(zeit==7 && verfaelscht);
 }
-
 
 double* AmericanOption::linearCombinationOfBasis_Abl(int zeit, double* x) {
 	double* sum =DoubleFeld(D);

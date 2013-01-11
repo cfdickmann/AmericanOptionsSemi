@@ -8,6 +8,7 @@
 
 using namespace std;
 
+
 double AmericanOption::semi_f_Abl(int zeit, double* x, int d) {
 
 	if (zeit == N - 1){

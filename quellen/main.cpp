@@ -1,5 +1,6 @@
-#include <stdio.h>
 #include "AmericanOption.h"
+
+#include <stdio.h>
 #include <cstring>
 #include <string.h>
 #include <iostream>
