@@ -1,13 +1,7 @@
 #include "Hilfsmittel.h"
 #include <stdio.h>
-#include <iostream>
 #include <string.h>
-#include <math.h>
-#include <iostream>
 #include <fstream>
-#include <stdlib.h>
-#include <cstring>
-#include <math.h>
 #include <stdlib.h>
 
 using namespace std;
@@ -175,34 +169,34 @@ int argMax(double* v, int l)
 		}
 	return maximum_j;
 }
-
-int argZweiter(double *v, int l)
-{
-	double maximum=-10000000;
-	double max=argMax(v,l);
-
-	int argZwe=0;
-	for(int j=0;j<l;++j)
-		if(v[j]>maximum && j!=max){
-			argZwe=j;
-			maximum=v[j];
-		}
-	return argZwe;
-}
-
-int argDritter(double *v, int l)
-{
-	double maximum=-10000000;
-	double max=argMax(v,l);
-	double zwe=argZweiter(v,l);
-	int argZwe=0;
-	for(int j=0;j<l;++j)
-		if(v[j]>maximum && j!=max && j!=zwe ){
-			argZwe=j;
-			maximum=v[j];
-		}
-	return argZwe;
-}
+//
+//int argZweiter(double *v, int l)
+//{
+//	double maximum=-10000000;
+//	double max=argMax(v,l);
+//
+//	int argZwe=0;
+//	for(int j=0;j<l;++j)
+//		if(v[j]>maximum && j!=max){
+//			argZwe=j;
+//			maximum=v[j];
+//		}
+//	return argZwe;
+//}
+//
+//int argDritter(double *v, int l)
+//{
+//	double maximum=-10000000;
+//	double max=argMax(v,l);
+//	double zwe=argZweiter(v,l);
+//	int argZwe=0;
+//	for(int j=0;j<l;++j)
+//		if(v[j]>maximum && j!=max && j!=zwe ){
+//			argZwe=j;
+//			maximum=v[j];
+//		}
+//	return argZwe;
+//}
 
 void InPipeSchreiben(int* pipe, double wert ){
 	close(pipe[0]);

@@ -1,10 +1,3 @@
-/*
- * Hilfsmittel.h
- *
- *  Created on: Feb 6, 2012
- *      Author: dickmann
- */
-
 #include "math.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,8 +6,8 @@
 #define HILFSMITTEL_H_
 
 int argMin(double* v, int l);
-int argZweiter(double* v, int l);
-int argDritter(double* v, int l);
+//int argZweiter(double* v, int l);
+//int argDritter(double* v, int l);
 int argMax(double* v, int l);
 
 void MatrixAusgeben(double**  a, int D);
@@ -27,8 +20,8 @@ int* BubbleSort(double* werte, int l);
 int* array_machen(int z);
 //int hargMax(double* v, int l, int ll);
 //int hMax(double* v, int l, int ll);
-double summe(double* vector,int laenge);
-double mean(double* vector,int laenge);
+double summe(double* array,int laenge);
+double mean(double* array,int laenge);
 
 double Max(double* v, int l);
 double* LGSloesen(double** A, double* b, int Mphi);
@@ -61,7 +54,7 @@ void deleteIntFeld(int * D, int m);
 void deleteIntFeld(int ** D  ,int m,int n);
 void deleteIntFeld(int *** D  ,int m,int n,int o);
 
-double** faurepts(int n0, int npts, int d, int b);
+//double** faurepts(int n0, int npts, int d, int b);
 void ausgeben(double* x, int j);
 
 void InPipeSchreiben(int* pipe, double wert );

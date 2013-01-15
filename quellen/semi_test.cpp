@@ -63,8 +63,8 @@ void AmericanOption::semi_testThread(int threadnummer) {
 				gamma[d]+=s/pow(0.00001*X0[d],2.);
 			}
 
-			for(int d=0;d<D;++d)
-				grad[d]+=semi_f_Abl(n, x[n],d)* x[n][d]/X0[d];
+//			for(int d=0;d<D;++d)
+//				grad[d]+=semi_f_Abl(n, x[n],d)* x[n][d]/X0[d];
 		}
 		deleteDoubleFeld(wdiff,N,D);
 	}
@@ -164,7 +164,7 @@ double AmericanOption::koeff_testen(double* koeff)
 		pthread_join(threads[t], NULL);
 	deleteIntFeld(nummern,Threadanzahl);
 
-	if(verbose)printf("--------------Time for koeff_testing:%ld seconds\n", time(NULL) - time1);
+	if(Parameter_verbose)printf("--------------Time for koeff_testing:%ld seconds\n", time(NULL) - time1);
 	double result=summe(koeff_ergebnisse,Threadanzahl);
 	deleteDoubleFeld(koeff_ergebnisse,Threadanzahl);
 

@@ -8,41 +8,40 @@
 
 using namespace std;
 
-
-double AmericanOption::semi_f_Abl(int zeit, double* x, int d) {
-
-	if (zeit == N - 1){
-		double* grad;
-		grad=payoffAbl(x, zeit);
-		double erg=grad[d];
-		deleteDoubleFeld(grad,D);
-		return erg;
-	}
-
-	double sum = 0;
-	int m;
-	for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
-		m = semi_betas_index[zeit][i];
-		sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
-	}
-
-	if(payoff(x, zeit) < sum)
-		return 0;
-	else
-	{
-		double* A=payoffAbl(x, zeit);
-		double sum = A[d];
-		deleteDoubleFeld(A,D);
-		int m;
-		for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
-			m = semi_betas_index[zeit][i];
-			double* B=semi_BasisfunktionenAbl(zeit, m, x);
-			sum -= semi_betas[zeit][m] * B[d];
-			deleteDoubleFeld(B,D);
-		}
-		return sum;
-	}
-}
+//double AmericanOption::semi_f_Abl(int zeit, double* x, int d) {
+//
+//	if (zeit == N - 1){
+//		double* grad;
+//		grad=payoffAbl(x, zeit);
+//		double erg=grad[d];
+//		deleteDoubleFeld(grad,D);
+//		return erg;
+//	}
+//
+//	double sum = 0;
+//	int m;
+//	for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
+//		m = semi_betas_index[zeit][i];
+//		sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
+//	}
+//
+//	if(payoff(x, zeit) < sum)
+//		return 0;
+//	else
+//	{
+//		double* A=payoffAbl(x, zeit);
+//		double sum = A[d];
+//		deleteDoubleFeld(A,D);
+//		int m;
+//		for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
+//			m = semi_betas_index[zeit][i];
+//			double* B=semi_BasisfunktionenAbl(zeit, m, x);
+//			sum -= semi_betas[zeit][m] * B[d];
+//			deleteDoubleFeld(B,D);
+//		}
+//		return sum;
+//	}
+//}
 
 void AmericanOption::stuetzpunkte_ausgeben()
 {
@@ -53,7 +52,6 @@ void AmericanOption::stuetzpunkte_ausgeben()
 		printf(") E: %.2lf ,payoff: %.2lf\n",stuetzerwartung[j],payoff(stuetzpunkte[j],nactual));
 	}
 }
-
 
 void AmericanOption::semi_ergebnisse_ausgeben(){
 	printf("semi_betas ausgeben \n");

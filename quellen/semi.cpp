@@ -16,7 +16,7 @@ using namespace std;
 
 
 AmericanOption* zeiger3;
-
+//extern double xte(int r);
 
 void* DELEGATE_stuetzerwartung_ausrechnen_THREAD(void* data) {
 	zeiger3->stuetzerwartung_ausrechnenThread(((int*)data)[0]);
@@ -64,11 +64,11 @@ void AmericanOption::stuetzerwartung_ausrechnen(){
 	for (int t = 0; t < Threadanzahl; t++)
 		pthread_join(threads[t], NULL);
 	deleteIntFeld(nummern,Threadanzahl);
-	if(verbose)printf("--------------Time forstuetzerwartung_ausrechnen:%ld seconds\n", time(NULL) - time1);
+	if(Parameter_verbose)printf("--------------Time forstuetzerwartung_ausrechnen:%ld seconds\n", time(NULL) - time1);
 }
 
 void AmericanOption::semi_inner_paths_erzeugen(){
-	if (verbose)printf("innere Pfade erzeugen\n");
+	if (Parameter_verbose)printf("innere Pfade erzeugen\n");
 	pthread_t threads[Threadanzahl];
 	int* nummern=IntFeld(Threadanzahl);
 	for (int j = 0; j < Threadanzahl; j++)
@@ -83,7 +83,6 @@ void AmericanOption::semi_inner_paths_erzeugen(){
 
 void AmericanOption::semi() {
 	zeiger3 = this;
-	mlsm = true;
 
 	Daten(); //Problemdaten laden
 
@@ -92,7 +91,6 @@ void AmericanOption::semi() {
 	dt=T/(double(N-1));
 
 	int faktor;
-	printf("LSM_k: %d,%d,%d,%d,%d\n",LSM_K0,LSM_K1,LSM_K2,LSM_K3,LSM_K4);
 
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
 	int L=1;
@@ -132,7 +130,7 @@ void AmericanOption::semi() {
 	printf("Stützpunkte: %d\n",J);
 	printf("Durchläufe: %d\n",durchlaeufe);
 
-	if (verbose)printf("stuetzpunkte setzen\n");
+	if (Parameter_verbose)printf("stuetzpunkte setzen\n");
 	stuetzpunkte = DoubleFeld(J, D);
 	semi_inner_paths = DoubleFeld(durchlaeufe,J,M,N,D);
 	stuetzpunkte_setzen(N/2);
@@ -206,7 +204,7 @@ void AmericanOption::semi() {
 			printf("Erwartungen ausrechnen\n");cout.flush();
 			stuetzerwartung_ausrechnen();
 
-			if (verbose)stuetzpunkte_ausgeben();
+			if (Parameter_verbose)stuetzpunkte_ausgeben();
 
 			double min=99999999;
 			//			double max=-9999999;
@@ -217,7 +215,7 @@ void AmericanOption::semi() {
 					Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
 			double ** temp_koeff=DoubleFeld(L,Mphi);
 			double testergebnisse[L];
-			for(lauf=0;lauf<L;++lauf){
+			for(int lauf=0;lauf<L;++lauf){
 				int number_active=0;
 				for(int j=0;j<J;++j)
 					if(rand()%faktor==0){
@@ -281,8 +279,8 @@ void AmericanOption::semi() {
 		semi_betas_index_max[n] = indexlauf;
 
 		printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
-		if (verbose)semi_ergebnisse_ausgeben();
-		if(n==6 && verbose)exit(0);
+		if (Parameter_verbose)semi_ergebnisse_ausgeben();
+		if(n==6 && Parameter_verbose)exit(0);
 		deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
 		deleteDoubleFeld(semi_betas_Feld2,durchlaeufe, Mphi);
 		//exit(0);
@@ -310,30 +308,30 @@ double AmericanOption::linearCombinationOfBasis(int zeit, double* x) {
 		m = semi_betas_index[zeit][i];
 		sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
 	}
-	return sum+0.10*(zeit==7 && verfaelscht);
+	return sum+0.10*(zeit==7 && Parameter_verfaelscht);
 }
 
-double* AmericanOption::linearCombinationOfBasis_Abl(int zeit, double* x) {
-	double* sum =DoubleFeld(D);
-	//    for (int m = 0; m < Mphi; ++m)
-	//        sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
-	int m;
-	for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
-		m = semi_betas_index[zeit][i];
-		double* B=semi_BasisfunktionenAbl(zeit, m, x);
-		for(int d=0;d<D;++d)
-			sum[d] += semi_betas[zeit][m] * B[d];
-		deleteDoubleFeld(B,D);
-	}
-	return sum;
-}
+//double* AmericanOption::linearCombinationOfBasis_Abl(int zeit, double* x) {
+//	double* sum =DoubleFeld(D);
+//	//    for (int m = 0; m < Mphi; ++m)
+//	//        sum += semi_betas[zeit][m] * semi_Basisfunktionen(zeit, m, x);
+//	int m;
+//	for (int i = 0; i < semi_betas_index_max[zeit]; ++i) {
+//		m = semi_betas_index[zeit][i];
+//		double* B=semi_BasisfunktionenAbl(zeit, m, x);
+//		for(int d=0;d<D;++d)
+//			sum[d] += semi_betas[zeit][m] * B[d];
+//		deleteDoubleFeld(B,D);
+//	}
+//	return sum;
+//}
 
-double AmericanOption::linearCombination(double* koeff, double* x) {
-	double sum = 0;
-	for (int m = 0; m < Mphi; ++m)
-		sum += koeff[m] * semi_Basisfunktionen(nactual, m, x);
-	return sum;
-}
+//double AmericanOption::linearCombination(double* koeff, double* x) {
+//	double sum = 0;
+//	for (int m = 0; m < Mphi; ++m)
+//		sum += koeff[m] * semi_Basisfunktionen(nactual, m, x);
+//	return sum;
+//}
 
 
 double AmericanOption::semi_f(int zeit, double* x) {
@@ -403,7 +401,7 @@ void AmericanOption::stuetzpunkte_setzen(int n) {
 
 
 void AmericanOption::lp_ausgeben() {
-	if (verbose) {
+	if (Parameter_verbose) {
 		printf("Matrix ausgeben\n");
 		for (int j = 0; j < J; ++j) {
 			for (int m = 0; m < Mphi; ++m)
@@ -441,9 +439,9 @@ double* AmericanOption::LP_mitGLPK_Loesen(double** Matrix, bool kleinergleich, d
 		if(!kleinergleich)C[m]*=-1;
 	}
 
-	if(verbose)printf("Optimization aufstellen time:%ld seconds\n", time(NULL) - time1);
+	if(Parameter_verbose)printf("Optimization aufstellen time:%ld seconds\n", time(NULL) - time1);
 
-	if (!verbose)glp_term_out(GLP_OFF);
+	if (!Parameter_verbose)glp_term_out(GLP_OFF);
 	glp_prob *lp;
 
 	lp = glp_create_prob();
@@ -488,7 +486,7 @@ double* AmericanOption::LP_mitGLPK_Loesen(double** Matrix, bool kleinergleich, d
 	for (int m = 0; m < Mphi; ++m)x[m] = glp_get_col_prim(lp, m + 1);
 
 	glp_delete_prob(lp);
-	if(verbose)printf("Optimization time:%ld seconds\n", time(NULL) - time1);
+	if(Parameter_verbose)printf("Optimization time:%ld seconds\n", time(NULL) - time1);
 	delete[] ja;
 	delete[] ia;
 	delete[] ar;

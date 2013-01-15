@@ -1,4 +1,3 @@
-
 #include "AmericanOption.h"
 
 using namespace std; 
@@ -80,10 +79,6 @@ if (j <1000){
 		return payoff(xx, zeit);
 	}
 	j -= 1000;
-
-
-
-
 
 	printf("Error 653 \n");return -1;
 }
