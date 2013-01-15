@@ -6,8 +6,6 @@
 #define HILFSMITTEL_H_
 
 int argMin(double* v, int l);
-//int argZweiter(double* v, int l);
-//int argDritter(double* v, int l);
 int argMax(double* v, int l);
 
 void MatrixAusgeben(double**  a, int D);
@@ -18,8 +16,6 @@ void BubbleSort(double* werte, int* index, int l);
 int* BubbleSort(double* werte, int l);
 
 int* array_machen(int z);
-//int hargMax(double* v, int l, int ll);
-//int hMax(double* v, int l, int ll);
 double summe(double* array,int laenge);
 double mean(double* array,int laenge);
 

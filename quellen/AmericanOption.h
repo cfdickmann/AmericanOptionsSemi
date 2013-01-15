@@ -23,19 +23,13 @@
 #define ITOrho 12
 #define EULER 13
 #define CIR 14
-//#define MTYP double    //Datentyp double oder float fuer die Speicherung angeben
 
-//using namespace alglib;
 
 namespace std {
 class AmericanOption {
 public:
 	AmericanOption();
 	virtual ~AmericanOption();
-	//
-	//	int Iterations_Nummer;
-	//	time_t Anfangszeit;
-	//	int BFGS_Iterations;
 
 	int option; // MAX_CALL or MIN_PUT
 	double delta; //dividend yield
@@ -45,7 +39,6 @@ public:
 	double* sigma; //Volatility
 	double T; //Gesamtzeit
 	int L;
-//	double lambdaJump; //for jumps
 	double eta; //for jumps
 	double kappa; // for mean reversion
 	double theta; // for mean reversion
@@ -55,37 +48,22 @@ public:
 	int Training_Dates;
 	int N; //time discretization
 	int D;
-	//	int K1;
-	//	int K2;
-	//	int K3;
-	//	int K4;
-	//	int K5;
 	int M; // numer of training paths
-	//	int BFGS_Nesterov_Intervals;
 	int Mphi;
 	int K; //K=NN*5+1; //Anzahl der Basisfunktionen
 	double dt;
-	//	MTYP *** StochIntegrals;
 	double*** X;
-	//	double*** WDiff;
-	//	double*** Sprue;
-	//	double* alpha;
 
 	int* Exercise_Dates;
 	int number_of_Exercise_Dates;
-	//	int lauf;
 
 	bool Parameter_verbose;
 	bool Parameter_semi;
 	bool Parameter_zehnT;
 	bool Parameter_vierT;//	bool loadAlphas;
 	bool Parameter_verfaelscht;
-	//	double* zwischenwert_ohne_glaettung;
-	//	double zwischenwert_pene; //penelization term
 	int Threadanzahl;
 	int PfadModell; //Ito or euler or CIR
-	//	double** gradient;
-	//	double* sup_glatt;
 
 	void Pfadgenerieren(double** X, int start, double * S);
 	void Pfadgenerieren(double** X, double** wdiff, int start, double* S);
@@ -113,79 +91,6 @@ public:
 //	double europeanValue(double* x, double t, double T);
 //	double EuropeanOption1D_discounted(double t, double T, double S, double Strike);
 
-	//BFGS members
-	//	void BFGS_StochIntgenerieren(int threadNummer);
-	//	void BFGS_setting();
-	//	double BFGS_testing(double number_of_replications);
-	//	void BFGS_parallelTesting(double number_of_replications);
-	//	void BFGS_extremeTesting(int l, double number_of_replications);
-	//	void objfs_aufrufen(double* x, double &func, double* grad);
-	//	void objfs(double* x, double& func, double* grad);
-	//	void BFGS();
-	//	void BFGS_mittelwert(int threadNummer);
-	//	void StochInt(double** STi, double** X, double** WDiff, double** Sprue);
-	//	//double* Basis(double x, int j, int n);
-	//	//double BelomestFunktion(double* x,int k, int t, int j);
-	//	double F(double x, int k, double border, bool hauf);
-	//double F2(double x, int k, double border, bool hauf);
-	//double F2(double x, int k, int t, int j);
-	//double F3(double* x, int k, int t, int j);
-	//double BelomestFunktion2(double* x,int k, int t, int j);
-	//double BelomestFunktion3(int k, int m, int t, int j, int tre);
-	//double f_Basisfunktionen(int k, int t, double *x, int j);
-//	double european_MaxCall_ND(double* x, double t, double T);
-
-	//Nesterov members
-	//	int Nesterov_Iterations;
-	//	double Nesterov_L;
-	//	double* fx;
-	//	double** x;
-	//	double** y;
-	//	double** z;
-	//	double** Dfx;
-	//	double* argminProblem(int lauf);
-	//	double* TQx(int lauf);
-	//	void Nesterov();
-	//	void objfsNesterov(double* alphas, double& func, double* gradient, int M);
-	//void argMinfunction1_grad(const real_1d_array &y, double &func, real_1d_array &grad, void *ptr);
-	//void TQfunction1_grad(const real_1d_array &y, double &func, real_1d_array &grad, void *ptr);
-
-	//Longstaff and Schwarz members
-	//	void LSM_setting();
-	//	void LongstaffSchwartz();
-	//	void LSM_mittelwert(int threadnummer);
-	//	double LSM_C_estimated(double* x, int time);
-	//	double LSM_phi(double* x, int j, int time);
-	//	double **V;
-	//	int Mphi;
-	//	double** betas;
-	//	double*** B;
-	//	double** BV;
-	//	int LSlauf;
-	//	bool mlsm;
-	//	int LSM_K0;
-	//	int LSM_K1;
-	//	int LSM_K2;
-	//	int LSM_K3;
-	//	int LSM_K4;
-	//	int LSM_Mtraining;
-	//	int LSM_Mtesting;
-
-	//AndersenBroadie members
-	//	void AndersenBroadie();
-	//	void AndersenBroadieTest();
-	//	double AndersenBroadieEinzel(double ** x, int nsubpaths);
-	//	double AndersenBroadieEinzel(double ** x, int nsubpaths, int startzeit);
-	//	double AndersenBroadieEinzelRand(double ** x, int nsubpaths, int startzeit);
-	//	double AndersenBroadieMulti(double ** x, int nsubpaths);
-	//	void AndersenBroadie5000(int threadnummer);
-	//	double** betasAusDateiLaden();
-	//	int testlaufactual;
-	//	int AB_Level;
-	//	int* AB_k;
-	//	int* AB_n;
-	//	double*** AB_mittelwerte;
-	//	double*** AB_quadratsummen;
 
 	//semi members
 	void  stuetzpunkte_ausrichten();
@@ -199,8 +104,6 @@ public:
 	double** semi_betas;
 	int ** semi_betas_index;
 	int * semi_betas_index_max;
-	//        double* LP_mitR_Loesen();
-	//        double* LP_mitALGLIB_Loesen();
 	double* LP_mitGLPK_Loesen(double ** Matrix, bool kleinergleich, double * RS);
 	double* LP_mitGLPK_Loesen(double** Matrix, bool kleinergleich, double* RS, double* C, int Mphi,int J);
 
@@ -234,7 +137,6 @@ public:
 	double semi_BasisfunktionenHigherD(int zeit, int j, double* x);
 	//	double* semi_BasisfunktionenHigherDAbl(int zeit, int j, double* x);
 	void semi();
-	//	void Test();
 	int nactual;
 	double linearCombinationOfBasis(int zeit, double* x);
 //	double* linearCombinationOfBasis_Abl(int zeit, double* x);

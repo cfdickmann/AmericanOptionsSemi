@@ -422,13 +422,6 @@ void AmericanOption::lp_ausgeben() {
 
 double* AmericanOption::LP_mitGLPK_Loesen(double** Matrix, bool kleinergleich, double* RS) {
 	time_t time1 = time(NULL);
-	//	for (int m = 0; m < Mphi; ++m)
-	//		for (int j = 0; j < J; ++j)
-	//			if(stuetzstelle_active[j])
-	//				Matrix[j][m] = semi_Basisfunktionen(nactual, m, stuetzpunkte[j]);
-	//			else
-	//				Matrix[j][m]=0;
-	//
 	double* C=new double[Mphi];
 
 	for (int m = 0; m < Mphi; ++m) {

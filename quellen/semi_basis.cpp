@@ -35,17 +35,6 @@ double AmericanOption::semi_Basisfunktionen1D(int zeit, int j, double* x)
 }
 
 double AmericanOption::semi_Basisfunktionen2D(int zeit, int j, double* x) {
-//	int reihe[D];
-//	for(int jj=0;jj<D;++jj)
-//		reihe[jj]=jj;
-//	BubbleSort(x,reihe,D);
-//
-//	double y[D];
-//	for (int d = 0; d < D; ++d) {
-//		y[d] = x[d];
-////		y[d] -= 100;
-////		y[d] /= 100;
-//	}
 	if (j == 0)
 		return 1;
 	if (j == 1)
@@ -84,12 +73,6 @@ if (j <1000){
 }
 
 double AmericanOption::semi_BasisfunktionenHigherD(int zeit, int j, double* x) {
-//	double y[D];
-//	for (int d = 0; d < D; ++d) {
-//		y[d] = x[d];
-//		y[d] -= Strike;
-//		y[d] /= Strike;
-//	}
 
 	int reihe[D];
 	for(int jj=0;jj<D;++jj)
@@ -181,7 +164,7 @@ double AmericanOption::semi_BasisfunktionenHigherD(int zeit, int j, double* x) {
 	}
 	j -= 1000;
 
-	if (j < 1000) {  //NEU
+	if (j < 1000) {
 		double xx[D];
 		for (int d = 0; d < D; ++d){
 			xx[d] = x[d];

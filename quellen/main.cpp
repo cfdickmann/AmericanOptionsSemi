@@ -11,20 +11,8 @@ int main( int argc, char* args[]) {
 	int runden=1;
 	AmericanOption AMO;
 
-	float f=0;
-	for(int i=0;i<1000;++i)
-		for(int k=0;k<100000;++k)
-		{
-			float s;
-
-			s=1223213.0*223324;
-			f=s+s*s;
-		}
-			printf("%f\n",f);
-			exit(0);
-
 	bool wieder=false;
-	for(int i=0;i<argc;++i)
+	for(int i=0;i<argc;++i)// Parameter des Programmaufrufs einlesen
 	{
 		string arg=args[i];
 		bool geaendert=false;
