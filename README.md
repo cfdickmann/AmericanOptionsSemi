@@ -1,6 +1,6 @@
-An approach for upper bounds for American Options using semi-infinite programming.
+An approach for upper bounds for American options using semi-infinite programming.
 Compile with
 <code>
-g++ *.cpp *.cc -lpthread 
+g++ ../quellen/*.c* -lglpk -lpthread -o AmericanOptionsSemi 
 </code>
-in Debug/
+or using <code>compile</code> in Debug/
