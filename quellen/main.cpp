@@ -1,7 +1,7 @@
 #include "AmericanOption.h"
 
 #include <stdio.h>
-//#include <cstring>
+#include <cstring>
 #include <string.h>
 #include <iostream>
 
@@ -12,7 +12,7 @@ int main( int argc, char* args[]) {
 	AmericanOption AMO;
 
 	bool wieder=false;
-	for(int i=0;i<argc;++i)// Parameter des Programmaufrufs einlesen
+	for(int i=0;i<argc;++i)
 	{
 		string arg=args[i];
 		bool geaendert=false;
@@ -22,13 +22,14 @@ int main( int argc, char* args[]) {
 		if(! arg.compare("-50"))                    {geaendert=true;runden=50;}
 		if(! arg.compare("-100"))                   {geaendert=true;runden=100;}
 		if(! arg.compare("-1000"))                  {geaendert=true;runden=1000;}
-		if(! arg.compare("-verfaelscht"))           {geaendert=true;AMO.Parameter_verfaelscht=true;}
-		if(! arg.compare("-verbose"))               {geaendert=true;AMO.Parameter_verbose=true;}
+		if(! arg.compare("-verfaelscht"))           {geaendert=true;AMO.verfaelscht=true;}
+		if(! arg.compare("-verbose"))               {geaendert=true;AMO.verbose=true;}
+		if(! arg.compare("-loadAlphas"))            {geaendert=true;AMO.loadAlphas=true;}
 		if(! arg.compare("-zehnmal"))               {geaendert=true;runden=10;};
 		if(! arg.compare("-fuenfzigmal"))           {geaendert=true;runden=50;};
-		if(! arg.compare("-10T")) 		            {geaendert=true;AMO.Parameter_zehnT=true;};
-		if(! arg.compare("-4T")) 		            {geaendert=true;AMO.Parameter_vierT=true;};
-		if(! arg.compare("-semi"))                  {geaendert=true;AMO.Parameter_semi=true;}
+		if(! arg.compare("-10T")) 		            {geaendert=true;AMO.zehnT=true;};
+		if(! arg.compare("-4T")) 		            {geaendert=true;AMO.zehnT=true;};
+		if(! arg.compare("-semi"))                  {geaendert=true;AMO.semiinf=true;}
 		if(i>0 && !geaendert){printf("Unverständliche Parameter!\n");return 0;}
 	}
 	if (wieder) {
@@ -36,6 +37,6 @@ int main( int argc, char* args[]) {
 		cin >> runden;
 	}
 	for(int i=0;i<runden;++i){
-		if (AMO.Parameter_semi)AMO.semi();
+		if (AMO.semiinf)AMO.semi();
 	}
 }

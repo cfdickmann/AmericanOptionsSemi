@@ -40,7 +40,7 @@ void AmericanOption::Daten(){
 //			N =20;  			//time discretization
 //			D=1;
 //		}
-
+//
 //	if(Example==2){					//Rogers Example MIN_PUT
 //		PfadModell=ITO;
 //		//	PfadModell=EULER;
@@ -95,8 +95,8 @@ void AmericanOption::Daten(){
 	}
 
 	Threadanzahl=1;
-	if(Parameter_zehnT)Threadanzahl=10;
-	if(Parameter_vierT)Threadanzahl=4;
+	if(zehnT)Threadanzahl=10;
+	if(vierT)Threadanzahl=4;
 }
 
 
