@@ -28,7 +28,7 @@ int main( int argc, char* args[]) {
 		if(! arg.compare("-zehnmal"))               {geaendert=true;runden=10;};
 		if(! arg.compare("-fuenfzigmal"))           {geaendert=true;runden=50;};
 		if(! arg.compare("-10T")) 		            {geaendert=true;AMO.zehnT=true;};
-		if(! arg.compare("-4T")) 		            {geaendert=true;AMO.zehnT=true;};
+		if(! arg.compare("-4T")) 		            {geaendert=true;AMO.vierT=true;};
 		if(! arg.compare("-semi"))                  {geaendert=true;AMO.semiinf=true;}
 		if(i>0 && !geaendert){printf("Unverständliche Parameter!\n");return 0;}
 	}

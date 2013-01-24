@@ -15,6 +15,7 @@ AmericanOption::AmericanOption() {
 	BFGS_Nesterov_Intervals = 5;
 	Iterations_Nummer = 0;
 	verbose = loadAlphas = false;
+	vierT=zehnT=false;
 	verfaelscht = extremTest = false;
 	semiinf =  false;
 	Daten();

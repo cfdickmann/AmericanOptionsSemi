@@ -108,10 +108,10 @@ void AmericanOption::semi() {
 
 	if (D == 2) {
 		Mphi = 7+3000; //3007   // Basisfunktionen
-		J = 200; //200 // Stuetzpunkte
+		J = 50; //200 // Stuetzpunkte
 		M = 10000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
 		faktor=2;  //2
-		L=10;      //10
+		L=5;      //10
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 1
 		semi_testingpaths = 1e6; // Testingpaths 1e6
 	}
@@ -165,8 +165,8 @@ void AmericanOption::semi() {
 	//		exit(0);
 
 	for (int n = N - 2; n >= 0; --n) {
-		for(int u=0;u<10000;++u)
-			Pfadgenerieren(koeff_testingpaths[u],0,X0,&generator); //Achtung, muss nicht sein
+		//for(int u=0;u<10000;++u)
+			//Pfadgenerieren(koeff_testingpaths[u],0,X0,&generator); //Achtung, muss nicht sein
 
 		printf("Zeitschritt %d\n", n);
 		nactual = n;
