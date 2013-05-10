@@ -186,14 +186,14 @@ void AmericanOption::koeff_testen_THREAD(int threadnummer)
 				indexlauf++;
 			}
 
-	for (int lauf = 0; lauf < 10000; ++lauf)
+	for (int lauf = 0; lauf < sub; ++lauf)
 		if(lauf%Threadanzahl==threadnummer)
 		{
 			double sum = 0;
 			if(actualkoeff!=NULL)
 				for (int m = 0; m < indexlauf; ++m)
 					sum += actualkoeff[koeff_index[m]] * semi_Basisfunktionen(nactual, koeff_index[m], koeff_testingpaths[lauf][nactual]);
-			ergebnis +=  max(0, payoff(koeff_testingpaths[lauf][nactual], nactual) - sum)/10000.;
+			ergebnis +=  max(0, payoff(koeff_testingpaths[lauf][nactual], nactual) - sum)/(double)sub;
 		}
 	//printf("koeff test %d: %f\n",threadnummer,ergebnis);
 	deleteIntFeld(koeff_index,Mphi);

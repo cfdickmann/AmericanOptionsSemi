@@ -3,7 +3,7 @@
 using namespace std;
 
 void AmericanOption::Daten(){
-	int Example=3;
+	int Example=1;
 
 	X0=new double[100];
 	sigma=new double[100];

@@ -14,9 +14,7 @@
 
 using namespace std;
 
-
 AmericanOption* zeiger3;
-
 
 void* DELEGATE_stuetzerwartung_ausrechnen_THREAD(void* data) {
 	zeiger3->stuetzerwartung_ausrechnenThread(((int*)data)[0]);
@@ -50,8 +48,6 @@ void AmericanOption::inner_paths_erzeugen_THREAD(int threadnummer){
 				}
 	deleteDoubleFeld(wdiff,N,D);
 }
-
-
 
 void AmericanOption::stuetzerwartung_ausrechnen(){
 	time_t time1 = time(NULL);
@@ -108,12 +104,12 @@ void AmericanOption::semi() {
 
 	if (D == 2) {
 		Mphi = 7+3000; //3007   // Basisfunktionen
-		J = 50; //200 // Stuetzpunkte
+		J = 200; //200 // Stuetzpunkte
 		M = 10000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
 		faktor=2;  //2
-		L=5;      //10
+		L=10;      //10
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 1
-		semi_testingpaths = 1e6; // Testingpaths 1e6
+		semi_testingpaths = 1e5; // Testingpaths 1e6
 	}
 
 	if (D > 2) {
@@ -125,6 +121,7 @@ void AmericanOption::semi() {
 		durchlaeufe = 1;  //1
 		semi_testingpaths = 1e5; //Testingpaths 1e6
 	}
+	sub=100;
 
 	printf("Dimensionen: %d\n",D);
 	printf("Basisfunktionen: %d \n",Mphi);
@@ -146,8 +143,9 @@ void AmericanOption::semi() {
 
 	printf("koeff-testingpfade erzeugen\n");
 	RNG generator;
-	koeff_testingpaths=DoubleFeld(10000,N,D);
-	for(int u=0;u<10000;++u)
+
+	koeff_testingpaths=DoubleFeld(sub,N,D);
+	for(int u=0;u<sub;++u)
 		Pfadgenerieren(koeff_testingpaths[u],0,X0,&generator);
 
 	stuetzstelle_active=new bool[J];

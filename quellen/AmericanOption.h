@@ -61,6 +61,7 @@ int L;
 	double kappa; // for mean reversion
 	double theta; // for mean reversion
 
+	int sub;
 	double rho;
 	int Testing_Dates;
 	int Training_Dates;
