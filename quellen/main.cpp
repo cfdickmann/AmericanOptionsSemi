@@ -11,6 +11,8 @@ int main( int argc, char* args[]) {
 	int runden=1;
 	AmericanOption AMO;
 
+	printf("formel: %f\n",AMO.europ(0,AMO.T));
+exit(0);
 	bool wieder=false;
 	for(int i=0;i<argc;++i)
 	{

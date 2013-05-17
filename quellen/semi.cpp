@@ -32,7 +32,6 @@ void AmericanOption::inner_paths_erzeugen_THREAD(int threadnummer){
 	RNG generator;
 	double** wdiff=DoubleFeld(N,D);
 	int lauf=0;
-	for(int u=0;u<durchlaeufe;++u)
 		for (int j = 0; j < J; ++j)
 			for (int m = 0; m < M; ++m)
 				if(m%Threadanzahl==threadnummer)
@@ -44,7 +43,7 @@ void AmericanOption::inner_paths_erzeugen_THREAD(int threadnummer){
 							if(lauf%2==1)
 								wdiff[n][d]=sqrt(dt)*generator.nextGaussian();
 							else wdiff[n][d]*=-1.;
-					Pfadgenerieren(semi_inner_paths[u][j][m],wdiff, 0,N, stuetzpunkte[j]);
+					Pfadgenerieren(semi_inner_paths[j][m],wdiff, 0,N, stuetzpunkte[j]);
 				}
 	deleteDoubleFeld(wdiff,N,D);
 }
@@ -95,18 +94,18 @@ void AmericanOption::semi() {
 	if (D == 1) {
 		Mphi = 16; //16,56
 		J = 25; //25,80
-		M = 5000; // 5000,10000
+		M = 10000; // 5000,10000
 		faktor=1;  //1
 		L=1;        //Optimierungsversuche 1
 		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
-		semi_testingpaths = 1e4*10; //Testingpaths, 1e6*10
+		semi_testingpaths = 1e6	; //Testingpaths, 1e6*10
 	}
 
 	if (D == 2) {
-		Mphi = 7+3000; //3007   // Basisfunktionen
+		Mphi = 7+300; //3007   // Basisfunktionen
 		J = 200; //200 // Stuetzpunkte
-		M = 10000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
-		faktor=2;  //2
+		M = 5000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
+		faktor=4;  //2
 		L=10;      //10
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 1
 		semi_testingpaths = 1e5; // Testingpaths 1e6
@@ -121,7 +120,7 @@ void AmericanOption::semi() {
 		durchlaeufe = 1;  //1
 		semi_testingpaths = 1e5; //Testingpaths 1e6
 	}
-	sub=100;
+	sub=100000;
 
 	printf("Dimensionen: %d\n",D);
 	printf("Basisfunktionen: %d \n",Mphi);
@@ -131,7 +130,8 @@ void AmericanOption::semi() {
 
 	if (verbose)printf("stuetzpunkte setzen\n");
 	stuetzpunkte = DoubleFeld(J, D);
-	semi_inner_paths = DoubleFeld(durchlaeufe,J,M,N,D);
+
+	semi_inner_paths = DoubleFeld(J,M,N,D);
 	stuetzpunkte_setzen(N/2);
 	semi_inner_paths_erzeugen();
 	//	stuetzpunkte_ausrichten();
@@ -257,7 +257,7 @@ void AmericanOption::semi() {
 			printf("Minimum: %f\n",min);
 
 			//			printf("Maximum: %f\n",max);
-			training+=min;
+			training+=min/(double)durchlaeufe;
 		}
 
 		//Durchschnitt als Ergebniss nehmen
@@ -287,6 +287,7 @@ void AmericanOption::semi() {
 	}
 
 	printf("Training %f\n",training);
+	ErgebnisAnhaengen(training,(char*)"training.txt");
 	semi_testing();
 	ErgebnisAnhaengen(training,(char*)"ergebnisse_semi_training.txt");
 	deleteDoubleFeld(Matrix,J,Mphi);
@@ -295,7 +296,7 @@ void AmericanOption::semi() {
 	deleteIntFeld(semi_betas_index ,N, Mphi);
 	deleteIntFeld(semi_betas_index_max,N);
 	deleteDoubleFeld(stuetzerwartung ,J);
-	deleteDoubleFeld(semi_inner_paths,durchlaeufe,J,M,N,D);
+	deleteDoubleFeld(semi_inner_paths,J,M,N,D);
 	delete[] stuetzstelle_active;
 }
 
@@ -347,7 +348,7 @@ void AmericanOption::stuetzerwartung_ausrechnenThread(int k) {
 			stuetzerwartung[j] = 0;
 			for (int m = 0; m < M; ++m)
 				for (int nnn = nactual + 1; nnn < N; ++nnn)
-					stuetzerwartung[j] += semi_f(nnn, semi_inner_paths[durchlaufactual][j][m][nnn - nactual]) / (double) (M);
+					stuetzerwartung[j] += semi_f(nnn, semi_inner_paths[j][m][nnn - nactual]) / (double) (M);
 		}
 }
 

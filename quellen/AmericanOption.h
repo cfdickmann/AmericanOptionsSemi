@@ -215,7 +215,7 @@ bool vierT;
 	void koeff_testen_THREAD(int threadnummer);
 	double *** koeff_testingpaths;
 	int durchlaeufe;
-	double ***** semi_inner_paths;
+	double **** semi_inner_paths;
 	double** semi_betas;
 	int ** semi_betas_index;
 	int * semi_betas_index_max;
@@ -238,6 +238,9 @@ bool vierT;
 
 	void stuetzpunkte_setzen(int n);
 
+	double europ(double t, double T);
+	double stammfunktion(double x);
+	double stammfunktion2(double x);
 	void lp_ausgeben();
 	int J;
 	double** Matrix;

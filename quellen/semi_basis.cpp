@@ -63,23 +63,23 @@ double AmericanOption::semi_Basisfunktionen2D(int zeit, int j, double* x) {
 		return payoff(x, zeit);
 	j -= 7;
 
-	if (j <1000){
-		return max((x[0] + x[1]) -  j / 1000. *4* X0[0], 0);
+	if (j <100){
+		return max((x[0] + x[1]) -  j / 100. *4* X0[0], 0);
 	}
-	j -= 1000;
+	j -= 100;
 
-	if (j <1000){
-		return max(fabs(x[0] - x[1])-  j / 1000. * X0[0], 0);//Achtung fabs(x[0] - x[1])
+	if (j <100){
+		return max(fabs(x[0] - x[1])-  j / 100. * X0[0], 0);//Achtung fabs(x[0] - x[1])
 	}
-	j -= 1000;
+	j -= 100;
 
-	if (j < 1000) {
+	if (j < 100) {
 		double xx[2];
-		xx[0] = j / 1000. * 2. * x[0];
-		xx[1] = j / 1000. * 2. * x[1];
+		xx[0] = j / 100. * 2. * x[0];
+		xx[1] = j / 100. * 2. * x[1];
 		return payoff(xx, zeit);
 	}
-	j -= 1000;
+	j -= 100;
 
 	printf("Error 653 \n");return -1;
 }
@@ -194,5 +194,42 @@ double AmericanOption::semi_BasisfunktionenHigherD(int zeit, int j, double* x) {
 	j -= 1000;
 
 	printf("Error 654 \n");return -1;
+}
+
+double AmericanOption::stammfunktion(double x){
+	double a=sigma[0]*sqrt(T);
+//	double a=1;
+	return -(1.56667E-8*exp(-0.5*a*a+a*x-0.5* x*x)*pow(-9.+x,2))  /(1.86046e-6+exp(118.752/(-9.+x)));
+}
+
+double AmericanOption::stammfunktion2(double x){
+	double a=sigma[0]*sqrt(T);
+//	double a=1;
+	return -(1.56667E-8*exp(-0.5*a*a+a*x-0.5* x*x)*pow(-9.+x,2))  /(1.86046e-6+exp(118.752/(-9.+x)));
+}
+
+double pnorm(double x){
+	return 1-1/(1+exp(4.2*3.1415927*x/(9-x))) ;
+}
+
+double AmericanOption::europ(double t, double T){
+	double summe=0;
+	double d_minus=(r-delta-sigma[0]*sigma[0]/2.)*T/sigma[0]/sqrt(T);
+	double d_plus=d_minus+sigma[0]*sqrt(T);
+	for(int d=0;d<D;++d)
+	{
+		double I=stammfunktion(7)-stammfunktion(sigma[0]*sqrt(T)-d_plus);
+//		printf("sadads %f\n",sigma[0]*sqrt(T)-d_plus);
+//		I+=stammfunktion2(0)-stammfunktion2(sigma[0]*sqrt(T)-d_plus);
+				summe+=X0[d]*exp(-delta*T)/sqrt(2*3.141592654)*I;
+	}
+//	return stammfunktion(2.)-stammfunktion(1.);
+return stammfunktion(7);
+
+	double prod=1;
+	for(int d=0;d<D;++d)
+		prod*=(1-(1-pnorm(-d_minus)));
+	return summe-Strike*exp(-r*T)+Strike*exp(-t*T)*prod;//return erf(0.1);
+//	return pnorm(-0.3);
 }
 

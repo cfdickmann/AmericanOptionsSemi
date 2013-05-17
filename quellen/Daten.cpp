@@ -3,7 +3,7 @@
 using namespace std;
 
 void AmericanOption::Daten(){
-	int Example=1;
+	int Example=3;
 
 	X0=new double[100];
 	sigma=new double[100];
@@ -83,7 +83,7 @@ void AmericanOption::Daten(){
 		D=2;
 		for(int j=0;j<D;++j)
 		{
-			X0[j]=90.;
+			X0[j]=100.;
 			sigma[j]=0.2;
 		}
 		Strike = 100.;
