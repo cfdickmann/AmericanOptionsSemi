@@ -1,5 +1,6 @@
 #include "AmericanOption.h"
-
+#include "EuroBewerter_test.cpp"
+#include "Polynom_test.cpp"
 #include <stdio.h>
 #include <cstring>
 #include <string.h>
@@ -8,11 +9,12 @@
 using namespace std;
 
 int main( int argc, char* args[]) {
+//	PolynomTest();
+//	EuroBewerterTest();
+//	exit(0);
+
 	int runden=1;
 	AmericanOption AMO;
-
-	printf("formel: %f\n",AMO.europ(0,AMO.T));
-exit(0);
 	bool wieder=false;
 	for(int i=0;i<argc;++i)
 	{

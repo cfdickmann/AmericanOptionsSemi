@@ -13,6 +13,7 @@
 
 #include <time.h>
 #include "RNG.h"
+#include "EuroBewerter.h"
 //#include "../src/ap.h"
 #include "math.h"
 #include "Hilfsmittel.h"
@@ -48,6 +49,7 @@ public:
 	time_t Anfangszeit;
 	int BFGS_Iterations;
 
+	EuroBewerter EB;
 	int option; // MAX_CALL or MIN_PUT
 	double delta; //dividend yield
 	double* X0; // Spot

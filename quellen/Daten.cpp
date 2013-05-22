@@ -83,7 +83,7 @@ void AmericanOption::Daten(){
 		D=2;
 		for(int j=0;j<D;++j)
 		{
-			X0[j]=100.;
+			X0[j]=90.;
 			sigma[j]=0.2;
 		}
 		Strike = 100.;

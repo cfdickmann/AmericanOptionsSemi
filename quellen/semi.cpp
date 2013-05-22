@@ -102,11 +102,11 @@ void AmericanOption::semi() {
 	}
 
 	if (D == 2) {
-		Mphi = 7+300; //3007   // Basisfunktionen
-		J = 200; //200 // Stuetzpunkte
+		Mphi = 6; //3007   // Basisfunktionen
+		J = 100; //200 // Stuetzpunkte
 		M = 5000; //10000       // Pfade an jedem stuetzpunkt zum schaetzen
-		faktor=4;  //2
-		L=10;      //10
+		faktor=1;  //2
+		L=1;      //10
 		durchlaeufe = 1; //mehrmals pro zeitschritt optimieren 1
 		semi_testingpaths = 1e5; // Testingpaths 1e6
 	}
@@ -268,6 +268,8 @@ void AmericanOption::semi() {
 			//+0.5* semi_betas_Feld2[i][m] / (double) durchlaeufe  ;
 		}
 
+		for (int m = 0; m < Mphi; ++m)
+				printf("%f,",semi_betas[n][m]);
 
 		//koeffizienten indizieren
 		int indexlauf = 0;
@@ -279,6 +281,9 @@ void AmericanOption::semi() {
 		semi_betas_index_max[n] = indexlauf;
 
 		printf("Anzahl nichtnegativer Koeff. %d\n", semi_betas_index_max[n]);
+
+
+
 		if (verbose)semi_ergebnisse_ausgeben();
 		if(n==6 && verbose)exit(0);
 		deleteDoubleFeld(semi_betas_Feld,durchlaeufe, Mphi);
