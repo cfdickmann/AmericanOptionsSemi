@@ -17,6 +17,30 @@ double AmericanOption::semi_Basisfunktionen1D(int zeit, int j, double* x) {
 	if (j < 6) {
 		if (j == 0)
 			return 1;
+
+//		if (j == 1)
+//			return EB.max_call(dt * zeit, T, x, D, Strike, r, delta,
+//									sigma[0]);
+
+		double v[4];
+			for (int i = 1; i < 5; ++i)
+				v[i - 1] = (int) (zeit + (N - 1 - zeit) * i / 4);
+			if (j == 1)
+				return EB.max_call(dt * zeit, (v[0]) * dt, x, D, Strike, r, delta,
+						sigma[0]);
+			if (j == 2)
+				return EB.max_call(dt * zeit, (v[1]) * dt, x, D, Strike, r, delta,
+						sigma[0]);
+			if (j == 3)
+				return EB.max_call(dt * zeit, (v[2]) * dt, x, D, Strike, r, delta,
+						sigma[0]);
+			if (j == 4)
+				return EB.max_call(dt * zeit, (v[3]) * dt, x, D, Strike, r, delta,
+						sigma[0]);
+			if (j == 5)
+				return EB.max_call(dt * zeit, (v[4]) * dt, x, D, Strike, r, delta,
+						sigma[0]);
+
 		if (j == 1)
 			return x[0];
 		if (j == 2)

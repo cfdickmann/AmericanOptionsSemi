@@ -10,7 +10,7 @@ using namespace std;
 
 int main( int argc, char* args[]) {
 //	PolynomTest();
-//	EuroBewerterTest();
+	EuroBewerterTest();
 //	exit(0);
 
 	int runden=1;

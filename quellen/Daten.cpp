@@ -12,6 +12,7 @@ void AmericanOption::Daten(){
 		PfadModell=ITO;
 		//	PfadModell=EULER;
 		option=MIN_PUT;
+		option=MAX_CALL;
 		delta=0;
 		X0[0] = 100.;      		//Spot
 		Strike = 100.; 			//Ausuebungspreis

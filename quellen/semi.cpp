@@ -92,13 +92,13 @@ void AmericanOption::semi() {
 	//    int semi_durchlaeufe=10;   // Wie viele cycles training und testing
 	int L=1;
 	if (D == 1) {
-		Mphi = 16; //16,56
+		Mphi = 6; //16,56
 		J = 25; //25,80
-		M = 10000; // 5000,10000
+		M = 1000; // 5000,10000
 		faktor=1;  //1
 		L=1;        //Optimierungsversuche 1
 		durchlaeufe = 5; //mehrmals pro zeitschritt optimieren 5
-		semi_testingpaths = 1e6	; //Testingpaths, 1e6*10
+		semi_testingpaths = 1e5	; //Testingpaths, 1e6*10
 	}
 
 	if (D == 2) {

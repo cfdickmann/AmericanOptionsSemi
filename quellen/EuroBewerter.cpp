@@ -181,13 +181,25 @@ T=T-t;
 double I;
 		for (int dd = 0; dd < D; ++dd)
 			if (dd != d) {
-				double pp[18] = { 0.5, 0.3960985, 0, -0.061485, 0, 0.007456, 0,
-						-5.84946E-4, 0, 2.920034E-5, 0, -9.15823E-7, 0,
-						1.740319E-8, 0, -1.826093E-10, 0, 8.10495E-13 };
+//				double pp[18] = { 0.5, 0.3960985, 0, -0.061485, 0, 0.007456, 0,
+//						-5.84946E-4, 0, 2.920034E-5, 0, -9.15823E-7, 0,
+//						1.740319E-8, 0, -1.826093E-10, 0, 8.10495E-13 };
+
+				double pp[10]={0.50000000000009,
+				0.38567951086190133,
+				0,
+				-0.05010672697589501,
+				0,
+				0.004103597701237448,
+				0,
+				-1.631010612321749E-4,
+				0,
+				2.4428290978202304E-6
+				};
 
 				Polynom p;
 //				double qq[4]={1,1,1,1};
-				p.set(pp,18);
+				p.set(pp,10);
 //				double II = integralExpQ(&p, -2, 4);
 //				printf("\neinfach: II %f\n\n", II);
 
@@ -228,6 +240,12 @@ double zu=-Strike * exp(-r * T) + Strike * exp(-r * T) * prod;
 //printf("summe%f, zu%f\n",summe,zu);
      return (summe + zu)*exp(-r*t); //return erf(0.1);
 }
+
+//double EuroBewerter::min_put(double t, double T, double* X0, int D,
+//		double Strike, double r, double delta, double sigma) {
+//	return max_call(double t, double T, double* X0, int D,
+//			double Strike, double r, double delta, double sigma)-;
+//}
 
 EuroBewerter::EuroBewerter() {
 	// TODO Auto-generated constructor stub
